@@ -69,7 +69,9 @@ O trigo apresenta a sequência de aproximação, preparação, levantamento da f
 
 ## 5 Galinheiro e produtos
 
-O galinheiro produz um ovo a cada 12 segundos enquanto houver menos de seis ovos prontos. A nova partida começa com dois. Ao clicar no galinheiro ou no ninho, o fazendeiro caminha até o ponto de interação e recolhe os ovos prontos para a mochila.
+As galinhas branca e marrom alternam descanso, caminhada e bicadas com animação de oito quadros por segundo. Fazem pequenos deslocamentos perto do galinheiro, em ritmos distintos e com os pés alinhados ao solo. Essa apresentação não altera a produção de ovos.
+
+O galinheiro começa com duas galinhas. A Loja permite comprar mais por $750 cada, até sete galinhas, usando apenas o saldo disponível. Cada galinha produz um ovo a cada 12 segundos; o ninho comporta três ovos por galinha, de seis a 21 ovos no total. A compra desconta o preço completo, adiciona uma galinha animada, fica salva e reinicia a contagem de produção. Saldo insuficiente ou limite atingido impede a compra. A nova partida começa com dois. Cada ovo produzido recebe aleatoriamente um dos seis assets de resources/eggs: branco, creme, bege, castanho claro, marrom ou pintado. As variações aparecem no ninho e ficam salvas até a coleta; todas têm o mesmo valor de venda de $7. Ao clicar no galinheiro ou no ninho, o fazendeiro caminha até o ponto de interação e recolhe os ovos prontos para a mochila.
 
 A mochila registra tomate, ovos e trigo separadamente. Colher não abastece a banca automaticamente. Os produtos precisam ser levados até a área de entrega.
 
@@ -90,9 +92,10 @@ Cada comprador mostra o produto e a quantidade desejados. Quando chega ao ponto,
 | Produto comprado atualmente | Quantidade por pedido | Valor por unidade |
 | --- | --- | --- |
 | Tomate | De 1 a 3 unidades | $24 |
-| Ovo | 1 unidade | $18 |
+| Ovo | 1 unidade | $7 |
+| Trigo | De 1 a 3 unidades após liberar a área | $32 |
 
-Na sequência atual de compradores, cada quarto cliente pede ovo; os demais pedem tomate. O trigo pode ser descarregado e armazenado, mas clientes comprando trigo e seu preço de venda ainda não foram implementados. Não se deve considerar essa venda como funcional.
+Na sequência atual de compradores, cada quarto cliente pede ovo. Após liberar a área de trigo, os clientes cuja sequência é múltipla de três pedem trigo, exceto quando o pedido de ovo tem prioridade. Os demais pedem tomate. O trigo é vendido por $32 a unidade, apenas a partir do estoque descarregado na banca; o Inventário registra o total de trigos vendidos.
 
 Quando o pedido é atendido, os produtos saem do estoque e o pagamento entra no dinheiro pendente. A receita acumulada é atualizada nessa hora, mas o saldo disponível do fazendeiro só aumenta após recolher o dinheiro. O cliente mostra o pagamento e deixa o local pelo lado externo da cerca.
 
@@ -180,4 +183,4 @@ O plantio de milho tem farmer_plant_corn.png configurado, mas o jogo ainda não 
 
 A pasta assets/crops/wheat contém artes adicionais de etapas de corte e feixe. O ciclo de crescimento vigente continua utilizando os três assets wheat_seed.png, wheat_growing.png e wheat_mature.png. A sequência de colheita com foice está integrada separadamente como animação do personagem.
 
-Venda de trigo, uso de gemas, outras construções e mais de uma fila adicional por campo precisam de regras específicas antes de serem considerados disponíveis. O documento não acrescenta custos, produtos ou funcionalidades além do estágio atual.
+Uso de gemas, outras construções e mais de uma fila adicional por campo precisam de regras específicas antes de serem considerados disponíveis. O documento não acrescenta custos, produtos ou funcionalidades além do estágio atual.

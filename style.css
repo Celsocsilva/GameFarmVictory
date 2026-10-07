@@ -127,3 +127,11 @@ button{font:inherit}
 #world{will-change:transform}#player,.customer{will-change:transform,left,top}
 
 .wheat-plot .ready{position:absolute;top:100px;right:26px;background:#56bd35;color:white;border:3px solid white;border-radius:50%;width:27px;height:27px;display:grid;place-items:center;font-weight:900;pointer-events:none}
+
+.animated-chicken{width:92px;height:auto;transform-origin:50% 100%;pointer-events:none;will-change:transform,left,top}
+
+.egg-nest{position:absolute;left:1540px;top:1340px;width:205px;height:115px;border:2px solid #d4a963;border-radius:50%;background:radial-gradient(ellipse,#ae7f3666,#ddbd7844 70%,transparent 72%);padding:0;z-index:67;cursor:pointer}
+.produced-egg{position:absolute;width:34px;height:auto;pointer-events:none;filter:drop-shadow(0 3px 2px #3b2b1a55)}
+.egg-nest-label{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);white-space:nowrap;background:#694726e6;color:#fff4cc;border-radius:10px;font-size:11px;font-weight:800;padding:4px 8px;pointer-events:none}
+.new-egg{animation:egg-appear .35s ease-out}
+@keyframes egg-appear{from{opacity:0;transform:translateY(-10px) scale(.6)}to{opacity:1;transform:translateY(0) scale(1)}}

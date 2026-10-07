@@ -19,6 +19,11 @@
   const CASH_AREA = {x:2190,y:1445,bundleValue:24};
   const MARKET_DROP = {x:2390,y:1430,radius:50};
   const joystick = {pointer:null,x:0,y:0,originX:0,originY:0,el:null,knob:null};
+  const PRODUCTS = {tomato:{icon:'🍅',price:24},egg:{icon:'🥚',price:7},wheat:{icon:'🌾',price:32}};
+  const EGG_VARIANTS = ['white','cream','beige','tan','brown','speckled'];
+  let eggVisualSignature = null;
+  function randomEggVariant(){return EGG_VARIANTS[Math.floor(Math.random()*EGG_VARIANTS.length)];}
+  const CHICKEN_PRICE = 750, MAX_CHICKENS = 7;
   let nextSaleSpot = 0;
   let nearbyPlots = new Set();
   const CROP_TIMING = {seedMs:10000,matureMs:25000};
@@ -41,6 +46,7 @@
     maxEnergy: 30,
     inventory: { tomato: 0, egg: 0, wheat: 0 },
     totalSold: 0,
+    wheatSold: 0,
     revenue: 0,
     pendingCash: [0,0,0],
     marketStock: {tomato:0,egg:0,wheat:0},
@@ -51,6 +57,8 @@
     tomatoPlots: Array.from({length:16}, (_,i) => i < 4 ? {state:'mature', t:0} : i < 8 ? {state:'growing', t:Date.now()-12000} : {state:'empty', t:0}),
     wheatPlots: Array.from({length:12}, () => ({state:'empty',t:0})),
     eggsReady: 2,
+    eggVariants: [randomEggVariant(),randomEggVariant()],
+    chickenCount: 2,
     taskIndex: 0
   });
 
@@ -70,6 +78,9 @@
   let lastTs = performance.now();
   let camera = {x:0,y:0};
   let customers = [];
+  let chickens = [];
+  const CHICKEN_FRAME_COUNTS = {white:{idle:4,walk:4,peck:4},brown:{idle:2,walk:4,peck:4}};
+  const CHICKEN_PHASES = [{mode:'idle',duration:2},{mode:'walk',duration:2.4},{mode:'peck',duration:2.8},{mode:'walk',duration:2.4}];
   let customerSeq = 1;
   let lastCustomerAt = 0;
   let lastEggAt = Date.now();
@@ -103,6 +114,10 @@
 
   ['plant_wheat','plant_corn'].forEach(type=>HARVEST_ANIMATIONS[type].frames.forEach(preloadSprite));
 
+  for(const color of ['white','brown'])for(const mode of ['idle','walk','peck'])for(let frame=1;frame<=CHICKEN_FRAME_COUNTS[color][mode];frame++)preloadSprite(`chickens/chicken_${color}_${mode}_${String(frame).padStart(2,'0')}.png`);
+
+  EGG_VARIANTS.forEach(color=>preloadSprite(`resources/eggs/egg_${color}_01.png`));
+
   const taskDefs = [
     { title:'Plante 6 tomates', current:()=>Math.min(state.plantedTomatoes,6), goal:6 },
     { title:'Colha 6 tomates', current:()=>Math.min(state.harvestedTomatoes,6), goal:6 },
@@ -114,8 +129,15 @@
   ];
 
   function loadState(){
-    try { const x = JSON.parse(localStorage.getItem(SAVE_KEY)); return x ? {...defaultState(), ...x, inventory:{...defaultState().inventory,...x.inventory}} : defaultState(); }
-    catch { return defaultState(); }
+    try {
+      const saved=JSON.parse(localStorage.getItem(SAVE_KEY)),initial=defaultState();
+      const result=saved?{...initial,...saved,inventory:{...initial.inventory,...saved.inventory},marketStock:{...initial.marketStock,...saved.marketStock}}:initial;
+      result.chickenCount=clamp(Math.floor(Number(result.chickenCount)||2),2,MAX_CHICKENS);
+      result.eggsReady=clamp(Math.floor(Number(result.eggsReady)||0),0,result.chickenCount*3);
+      const colors=Array.isArray(result.eggVariants)?result.eggVariants:[];
+      result.eggVariants=Array.from({length:result.eggsReady},(_,i)=>EGG_VARIANTS.includes(colors[i])?colors[i]:randomEggVariant());
+      return result;
+    }catch{return defaultState();}
   }
   function saveState(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
 
@@ -213,9 +235,10 @@
     const field=el('div'); field.id='tomato-field'; world.append(field); renderTomatoField();
 
     // Chicken visuals.
-    addImage('chickens/chicken_white_idle_01.png',1690,1260,92,65);
-    addImage('chickens/chicken_brown_idle_01.png',1780,1290,92,66);
-    const egg=addImage('props/nest_egg.png',1630,1315,105,67,'world-object interactable'); egg.id='egg-nest'; egg.onclick=(e)=>{e.stopPropagation(); interactCoop();};
+    buildChickens();
+    const nest=el('button','egg-nest interactable',{type:'button','aria-label':'Recolher ovos do galinheiro'});
+    nest.id='egg-nest';nest.onclick=e=>{e.stopPropagation();interactCoop();};world.append(nest);
+    eggVisualSignature=null;renderEggs();
 
     // Expansion area.
     const expansion=el('div', state.wheatUnlocked?'':'locked'); expansion.id='expansion'; expansion.classList.add('interactable'); expansion.onclick=(e)=>{e.stopPropagation(); attemptExpansion();}; world.append(expansion);
@@ -241,6 +264,40 @@
 
     world.addEventListener('pointerdown', onWorldPointer);
     setupJoystick();
+  }
+
+  function buildChickens(){
+    chickens.forEach(bird=>bird.el.remove());chickens=[];
+    const homes=[[1735,1360],[1825,1390],[1640,1380],[1710,1440],[1840,1460],[1580,1440],[1770,1500]];
+    homes.slice(0,state.chickenCount).map(([x,y],index)=>({color:index%2?'brown':'white',x,y,phase:index%2?2:0})).forEach(config=>{
+      const bird={...config,homeX:config.x,homeY:config.y,elapsed:0,waypoint:0,fromX:config.x,fromY:config.y,targetX:config.x,targetY:config.y,facing:1};
+      bird.el=img(`chickens/chicken_${bird.color}_idle_01.png`,'world-object animated-chicken');
+      world.append(bird.el);chickens.push(bird);
+    });
+    updateChickens(0);
+  }
+  function updateChickens(dt){
+    const offsets=[[45,12],[-25,30],[15,-10],[0,0]];
+    for(const bird of chickens){
+      bird.elapsed+=dt;
+      while(bird.elapsed>=CHICKEN_PHASES[bird.phase].duration){
+        bird.elapsed-=CHICKEN_PHASES[bird.phase].duration;bird.phase=(bird.phase+1)%CHICKEN_PHASES.length;
+        if(CHICKEN_PHASES[bird.phase].mode==='walk'){
+          const offset=offsets[bird.waypoint++%offsets.length];bird.fromX=bird.x;bird.fromY=bird.y;
+          bird.targetX=bird.homeX+offset[0];bird.targetY=bird.homeY+offset[1];
+          bird.facing=bird.targetX<bird.x?-1:1;
+        }
+      }
+      const phase=CHICKEN_PHASES[bird.phase];
+      if(phase.mode==='walk'){
+        const progress=Math.min(1,bird.elapsed/phase.duration);
+        bird.x=bird.fromX+(bird.targetX-bird.fromX)*progress;bird.y=bird.fromY+(bird.targetY-bird.fromY)*progress;
+      }
+      const frame=1+Math.floor(bird.elapsed*8)%CHICKEN_FRAME_COUNTS[bird.color][phase.mode];
+      setSprite(bird.el,`chickens/chicken_${bird.color}_${phase.mode}_${String(frame).padStart(2,'0')}.png`);
+      bird.el.style.left=bird.x+'px';bird.el.style.top=bird.y+'px';bird.el.style.zIndex=65+(bird.color==='brown'?1:0);
+      bird.el.style.transform=`translate(-50%,-100%) scaleX(${bird.facing})`;
+    }
   }
 
   function path(x,y,w,hOrClass,orient){
@@ -339,7 +396,7 @@
   function interactCoop(){
     moveTo(1580,1370,()=>{
       if(state.eggsReady<=0) return toast('As galinhas ainda estão produzindo ovos.');
-      const n=state.eggsReady; state.inventory.egg+=n; state.eggsReady=0; playAction('15_action_carry.png',700); toast(`+${n} ovos coletados`); updateAll(); tryServeCustomers(); saveState();
+      const n=state.eggsReady; state.inventory.egg+=n; state.eggsReady=0;state.eggVariants=[]; playAction('15_action_carry.png',700); toast(`+${n} ovos coletados`); updateAll(); tryServeCustomers(); saveState();
     });
   }
   function goToMarket(){ moveTo(MARKET_DROP.x,MARKET_DROP.y,()=>unloadProducts(true)); }
@@ -533,7 +590,8 @@
     const pool=CHARACTERS.map(x=>x[0]).filter(id=>id!==state.selectedCharacter);
     const id=pool[(customerSeq-1)%pool.length];
     const wantsEgg = customerSeq%4===0;
-    const item=wantsEgg?'egg':'tomato'; const qty=wantsEgg?1:1+(customerSeq%3);
+    const item=wantsEgg?'egg':state.wheatUnlocked&&customerSeq%3===0?'wheat':'tomato';
+    const qty=item==='egg'?1:item==='wheat'?1+(Math.floor((customerSeq-1)/3)%3):1+(customerSeq%3);
     let spotIndex=-1;
     for(let offset=0;offset<SALE_SPOTS.length;offset++){
       const candidate=(nextSaleSpot+offset)%SALE_SPOTS.length;
@@ -544,7 +602,7 @@
     const spot=SALE_SPOTS[spotIndex];
     const c={id:customerSeq++, charId:id, item, qty, spotIndex, x:2740,y:1600,targetX:spot.x,targetY:spot.y,status:'walking',frame:0,clock:0,serveAt:0};
     c.el=img(`character_frames/${id}/09_walk_side_01.png`,'customer'); c.el.style.left=c.x+'px';c.el.style.top=c.y+'px'; world.append(c.el);
-    c.bubble=el('div','customer-bubble',{text:`${item==='tomato'?'🍅':'🥚'} × ${qty}`}); world.append(c.bubble); customers.push(c); lastCustomerAt=now;
+    c.bubble=el('div','customer-bubble',{text:`${PRODUCTS[item].icon} × ${qty}`}); world.append(c.bubble); customers.push(c); lastCustomerAt=now;
   }
   function updateCustomers(dt,now){
     customers.forEach((c,idx)=>{
@@ -555,7 +613,7 @@
       } else if(c.status==='waiting' && now>=c.serveAt){
         const have=state.marketStock[c.item];
         if(have>=c.qty){ serveCustomer(c); }
-        else { c.bubble.classList.add('waiting'); c.bubble.textContent=`${c.item==='tomato'?'🍅':'🥚'} × ${c.qty} • aguardando`; c.serveAt=now+1400; }
+        else { c.bubble.classList.add('waiting'); c.bubble.textContent=`${PRODUCTS[c.item].icon} × ${c.qty} • aguardando`; c.serveAt=now+1400; }
       } else if(c.status==='leaving'){
         const dx=2740-c.x,dy=1600-c.y,dist=Math.hypot(dx,dy); if(dist<8){c.remove=true;} else {const s=Math.min(dist,145*dt);c.x+=dx/dist*s;c.y+=dy/dist*s;c.clock+=dt;if(c.clock>.16){c.clock=0;c.frame=(c.frame+1)%4;} setSprite(c.el,`character_frames/${c.charId}/${sideWalkFrame(dx,c.frame)}`);c.el.style.transform='translate(-50%,-85%) scaleX(1)';}
       }
@@ -565,7 +623,9 @@
     customers.filter(c=>c.remove).forEach(c=>{c.el.remove();c.bubble.remove();}); customers=customers.filter(c=>!c.remove);
   }
   function serveCustomer(c){
-    state.marketStock[c.item]-=c.qty; const unit=c.item==='tomato'?24:18; const total=unit*c.qty; state.pendingCash[c.spotIndex]+=total;state.revenue+=total;if(c.item==='tomato')state.totalSold+=c.qty;
+    const product=PRODUCTS[c.item];
+    if(!product||c.status!=='waiting'||state.marketStock[c.item]<c.qty)return;
+    state.marketStock[c.item]-=c.qty;const total=product.price*c.qty; state.pendingCash[c.spotIndex]+=total;state.revenue+=total;if(c.item==='tomato')state.totalSold+=c.qty;if(c.item==='wheat')state.wheatSold+=c.qty;
     c.status='leaving';c.bubble.classList.remove('waiting');c.bubble.textContent=`$${total} deixados ✓`;c.serveAt=Infinity; burst('vfx/coin.png',CASH_AREA.x,CASH_AREA.y-65,105); advanceTasks(); updateAll(); saveState();
   }
   function tryServeCustomers(){customers.forEach(c=>{if(c.status==='waiting')c.serveAt=0;});}
@@ -657,7 +717,28 @@
       for(const cell of field.children){const timer=cell.querySelector('.timer');if(timer)timer.textContent=cropRemaining(plots[Number(cell.dataset.index)])+'s';}
     }
   }
-  function updateEggs(now){ if(now-lastEggAt>12000 && state.eggsReady<6){state.eggsReady++;lastEggAt=now;updateAll();} }
+  function renderEggs(){
+    const nest=document.getElementById('egg-nest');if(!nest)return;
+    const signature=state.eggVariants.join(',');if(signature===eggVisualSignature)return;
+    const previousCount=eggVisualSignature?eggVisualSignature.split(',').length:0;
+    eggVisualSignature=signature;nest.innerHTML='';
+    state.eggVariants.forEach((color,index)=>{
+      const egg=img(`resources/eggs/egg_${color}_01.png`,'produced-egg'+(index>=previousCount?' new-egg':''));
+      egg.style.left=(15+(index%7)*25)+'px';egg.style.top=(8+Math.floor(index/7)*24)+'px';
+      egg.style.zIndex=1+Math.floor(index/7);nest.append(egg);
+    });
+    nest.append(el('span','egg-nest-label',{text:state.eggsReady?`RECOLHER ${state.eggsReady} OVOS`:'PRODUZINDO OVOS'}));
+    nest.setAttribute('aria-label',`Recolher ${state.eggsReady} ovos do galinheiro`);
+  }
+  function updateEggs(now){
+    const cycles=Math.floor((now-lastEggAt)/12000);if(cycles<1)return;
+    lastEggAt+=cycles*12000;
+    const next=Math.min(state.chickenCount*3,state.eggsReady+cycles*state.chickenCount);
+    if(next!==state.eggsReady){
+      for(let i=state.eggsReady;i<next;i++)state.eggVariants.push(randomEggVariant());
+      state.eggsReady=next;updateAll();saveState();
+    }
+  }
   function regenEnergy(now){ if(!regenEnergy.last)regenEnergy.last=now; if(now-regenEnergy.last>8000){regenEnergy.last=now;if(state.energy<state.maxEnergy){state.energy++;updateHUD();}} }
 
   function advanceTasks(){
@@ -677,12 +758,12 @@
     buttons.forEach(([icon,label,fn])=>{const b=el('button','hud-btn');b.append(img(icon),el('span','',{text:label}));b.onclick=fn;hudBottom.append(b);});
   }
   function updateAll(){uiDirty=true;}
-  function flushUI(){if(!uiDirty)return;uiDirty=false;updateHUD();updateTasks();renderTomatoField();renderWheatField();renderCashPile();}
+  function flushUI(){if(!uiDirty)return;uiDirty=false;updateHUD();updateTasks();renderTomatoField();renderWheatField();renderCashPile();renderEggs();}
 
   function openPanel(title,html,extraClass=''){
     modalRoot.innerHTML='';const m=el('div','modal');const p=el('div','panel '+extraClass);p.innerHTML=`<h2>${title}</h2>${html}`;const c=el('button','close-btn',{text:'Fechar'});c.onclick=()=>modalRoot.innerHTML='';p.append(c);m.append(p);modalRoot.append(m);m.onclick=(e)=>{if(e.target===m)modalRoot.innerHTML='';};
   }
-  function openInventory(){openPanel('Mochila',`<div class="panel-grid"><div class="item-row">🍅 Tomates <b>${state.inventory.tomato}</b></div><div class="item-row">🥚 Ovos <b>${state.inventory.egg}</b></div><div class="item-row">🌾 Trigo <b>${state.inventory.wheat}</b></div><div class="item-row">🏪 Na banca <b>${state.marketStock.tomato} 🍅 / ${state.marketStock.egg} 🥚 / ${state.marketStock.wheat} 🌾</b></div><div class="item-row">💵 Receita <b>$${state.revenue}</b></div></div>`);}
+  function openInventory(){openPanel('Mochila',`<div class="panel-grid"><div class="item-row">🍅 Tomates <b>${state.inventory.tomato}</b></div><div class="item-row">🥚 Ovos <b>${state.inventory.egg}</b></div><div class="item-row">🌾 Trigo <b>${state.inventory.wheat}</b></div><div class="item-row">🏪 Na banca <b>${state.marketStock.tomato} 🍅 / ${state.marketStock.egg} 🥚 / ${state.marketStock.wheat} 🌾</b></div><div class="item-row">🐔 Galinhas <b>${state.chickenCount}/${MAX_CHICKENS}</b></div><div class="item-row">🌾 Trigos vendidos <b>${state.wheatSold}</b></div><div class="item-row">💵 Receita <b>$${state.revenue}</b></div></div>`);}
   function extraFieldRows(){return (state.tomatoPlots.length-16+state.wheatPlots.length-12)/4;}
   function addFieldRow(type){
     if(type!=='tomato'&&type!=='wheat')return;
@@ -708,7 +789,18 @@
     document.getElementById('add-row-wheat').onclick=()=>addFieldRow('wheat');
     const unlock=document.getElementById('unlock-wheat');if(unlock)unlock.onclick=()=>{modalRoot.innerHTML='';attemptExpansion();};
   }
-  function openShop(){openPanel('Loja da fazenda',`<p>Para esta demo, cada semente custa <b>$2</b> e é comprada automaticamente ao plantar.</p><div class="panel-grid"><div class="item-row">🍅 Semente de tomate <b>$2</b></div><div class="item-row">🌾 Semente de trigo <b>$2</b></div></div>`);}
+  function buyChicken(){
+    if(state.chickenCount>=MAX_CHICKENS)return toast('Limite de 7 galinhas atingido.');
+    if(state.coins<CHICKEN_PRICE)return toast(`Faltam $${CHICKEN_PRICE-state.coins} para comprar uma galinha.`);
+    state.coins-=CHICKEN_PRICE;state.chickenCount++;
+    lastEggAt=Date.now();buildChickens();updateAll();saveState();openShop();
+    toast(`Galinha comprada! ${state.chickenCount}/${MAX_CHICKENS} no galinheiro.`);
+  }
+  function openShop(){
+    const full=state.chickenCount>=MAX_CHICKENS,poor=state.coins<CHICKEN_PRICE;
+    openPanel('Loja da fazenda',`<p>O plantio é automático ao tocar no canteiro. Custo nominal da semente: <b>$2</b>.</p><div class="panel-grid"><div class="item-row">🍅 Semente de tomate <b>$2</b></div><div class="item-row">🌾 Semente de trigo <b>$2</b></div></div><div class="expansion-option"><strong>Galinheiro • ${state.chickenCount}/${MAX_CHICKENS} galinhas</strong><p>Cada galinha custa $750 e produz 1 ovo a cada 12 segundos. Cada ovo vendido vale <b>$7</b>. O ninho comporta ${state.chickenCount*3} ovos.</p><button id="buy-chicken" class="close-btn" ${full||poor?'disabled':''}>${full?'Limite de 7 atingido':poor?'Faltam $'+(CHICKEN_PRICE-state.coins):'Comprar galinha • $750'}</button></div>`);
+    document.getElementById('buy-chicken').onclick=buyChicken;
+  }
   function openTasks(){const list=taskDefs.map((d,i)=>`<div class="item-row">${i<state.taskIndex?'✓':i===state.taskIndex?'▶':'🔒'} ${d.title}<b>${d.current()}/${d.goal}</b></div>`).join('');openPanel('Progressão',`<div>${list}</div>`);}
   function openMap(){openPanel('Mapa da propriedade',`<p><b>Área inicial:</b> casa, campo de tomate com ${state.tomatoPlots.length/4} filas, galinheiro e banca.</p><p><b>Nova área:</b> campo de trigo ${state.wheatUnlocked?'liberado ✓':'bloqueado por $500'}.</p><p>Use o mapa grande caminhando pela fazenda; a câmera acompanha o personagem suavemente.</p>`);}
   function openSettings(){openPanel('Configurações',`<p>Estado salvo automaticamente no navegador.</p><button id="change-char" class="close-btn">Trocar personagem</button> <button id="reset-game" class="close-btn reset-btn">Reiniciar demo</button>`);setTimeout(()=>{document.getElementById('change-char').onclick=()=>{modalRoot.innerHTML='';charSelect.style.display='grid';showCharacterSelect();};document.getElementById('reset-game').onclick=()=>{localStorage.removeItem(SAVE_KEY);location.reload();};},0);}
@@ -716,7 +808,7 @@
   function startGame(){ if(gameStarted)return; gameStarted=true; buildWorld(); updateHUD();updateBottom();updateTasks(); lastCustomerAt=performance.now()-6500;lastTs=performance.now();requestAnimationFrame(loop); }
   function loop(ts){
     const dt=Math.min(.033,(ts-lastTs)/1000);lastTs=ts;
-    updateHarvestAnimation(ts);updateMovement(dt);updateCamera(dt);positionJoystick();unloadProducts();updateCustomers(dt,ts); if(ts-lastCustomerAt>8000)spawnCustomer(ts); pickupCash();interactNearbyPlots();updateEggs(Date.now());regenEnergy(Date.now());flushUI();updateCropTimers();
+    updateHarvestAnimation(ts);updateMovement(dt);updateChickens(dt);updateCamera(dt);positionJoystick();unloadProducts();updateCustomers(dt,ts); if(ts-lastCustomerAt>8000)spawnCustomer(ts); pickupCash();interactNearbyPlots();updateEggs(Date.now());regenEnergy(Date.now());flushUI();updateCropTimers();
     if(gameStarted)requestAnimationFrame(loop);
   }
 
