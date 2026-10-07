@@ -57,3 +57,30 @@ button{font:inherit}
 .small-pill{display:inline-flex;align-items:center;gap:6px;background:#fff5d9;border:3px solid #825129;border-radius:15px;padding:7px 10px;font-weight:900}
 #help-strip{position:absolute;right:18px;bottom:18px;z-index:900;background:rgba(255,246,215,.92);border:3px solid #8c5b32;border-radius:18px;padding:10px 14px;font-size:13px;font-weight:700;max-width:370px}
 @media(max-width:900px){#task-panel{width:250px;top:90px}.resource{min-width:120px;height:49px;font-size:18px}.resource img{width:34px;height:34px}.hud-btn{width:80px;height:80px}.hud-btn img{width:48px;height:48px}.char-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Isometric top faces and crops share the same diamond lattice. */
+.grass-surface{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;background:#86c63b}
+.grass-diamond{position:absolute;width:304px;height:232px;clip-path:polygon(0 49%,50% 2%,100% 49%,50% 91%);pointer-events:none}
+#tomato-field,#wheat-field{display:block;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;pointer-events:none}
+.plot,.wheat-plot{position:absolute;width:184px;height:230px;display:block;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none}
+.plot::after,.wheat-plot::after{content:"";display:block;position:absolute;inset:auto;left:0;bottom:0;width:184px;height:104px;border:0;border-radius:0;background:#885333;clip-path:polygon(50% 0,100% 44%,100% 55%,50% 100%,0 55%,0 44%);pointer-events:auto;cursor:pointer;z-index:-1}
+.plot:hover,.wheat-plot:hover{transform:none;filter:brightness(1.1);background:none}
+.plot img,.wheat-plot img{position:absolute;bottom:0;width:184px;height:230px;max-height:none;object-fit:fill;mask-image:none;filter:none;pointer-events:auto;cursor:pointer}
+.plot.empty img,.wheat-plot.empty img{visibility:hidden}
+.plot .timer,.wheat-plot .timer{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:#332719cc;color:white;border-radius:8px;padding:3px 6px;pointer-events:none}
+.plot .ready{top:100px;right:26px;pointer-events:none}
+
+.market-cash{left:0;top:0;width:2800px;height:1800px;z-index:85;pointer-events:none}
+.cash-pile{position:absolute;width:110px;min-height:70px;display:grid;justify-items:center;padding:4px;border:2px solid #e7f4b2;border-radius:14px;background:rgba(36,76,28,.85);color:#fff4c0;cursor:pointer;pointer-events:auto;box-shadow:0 4px 8px #24391f55}
+.cash-pile:hover{filter:brightness(1.2)}
+.cash-bundle{font-size:36px;line-height:40px}
+
+.grass-diamond{width:340px;height:260px;mask-image:radial-gradient(ellipse at 50% 47%,#000 35%,transparent 69%)}
+.path{z-index:5}
+
+/* Preserve each sprite's natural proportions and anchor its soil at the same height. */
+.plot img,.wheat-plot img{height:auto;object-fit:contain;bottom:0}
+.plot::after,.wheat-plot::after{display:none}
+.plot.empty img,.wheat-plot.empty img{visibility:visible;opacity:1}
+.plot.empty img{content:url('assets/crops/tomato_seed.png')}
+.wheat-plot.empty img{content:url('assets/crops/wheat_seed.png')}

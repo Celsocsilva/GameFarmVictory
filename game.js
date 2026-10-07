@@ -12,6 +12,8 @@
   const toastEl = document.getElementById('toast');
 
   const WORLD_W = 2800, WORLD_H = 1800;
+  const SALE_SPOTS = [0,1,2].map(i=>({x:2250+i*146,y:1570-i*63,cashX:2190+i*146,cashY:1460-i*63}));
+  let nextSaleSpot = 0;
   const SAVE_KEY = 'farmVictoryDemoV4';
 
   const CHARACTERS = [
@@ -31,6 +33,7 @@
     inventory: { tomato: 0, egg: 0, wheat: 0 },
     totalSold: 0,
     revenue: 0,
+    pendingCash: [0,0,0],
     plantedTomatoes: 0,
     harvestedTomatoes: 0,
     wheatUnlocked: false,
@@ -102,11 +105,14 @@
     world.innerHTML='';
     customers.forEach(c=>{ try{c.el.remove();c.bubble.remove();}catch{} });
     customers=[];
-    // Ground texture patches, intentionally sparse so the scene stays readable.
-    for(let y=0;y<WORLD_H;y+=240){
-      for(let x=0;x<WORLD_W;x+=250){
-        const t=addImage(((x/250+y/240)%3===0)?'terrain/grass_02.png':'terrain/grass_01.png',x-25,y-35,285,1,'ground-tile');
-        t.style.opacity='.78';
+    // One continuous ground surface; props and fields sit above it.
+    const ground=el('div','grass-surface'); world.append(ground);
+    // Diamond lattice: adjacent top faces overlap, with no exposed dirt seams.
+    for(let row=-2;row<23;row++){
+      for(let col=-2;col<13;col++){
+        const tile=img('terrain/grass_01.png','grass-diamond');
+        tile.style.left=(col*296+(row%2)*148-150)+'px';
+        tile.style.top=(row*94-130)+'px'; tile.style.zIndex=row+3;ground.append(tile);
       }
     }
     // Water band / bridge at bottom-right.
@@ -159,6 +165,9 @@
     }
     const wheat=el('div'); wheat.id='wheat-field'; if(!state.wheatUnlocked) wheat.classList.add('hidden'); world.append(wheat); renderWheatField();
 
+    // Customers buy outside the fence; cash stays on the farm side.
+    addImage('fences/fence_corner_large.png',2040,1400,150,84);
+    SALE_SPOTS.forEach((spot,i)=>addImage('fences/fence_long.png',2160+i*146,1385-i*63,220,83-i));
     // Money pile at market.
     const cash=el('div','market-cash'); cash.id='market-cash'; world.append(cash); renderCashPile();
 
@@ -168,7 +177,7 @@
     // Player.
     player=img(`character_frames/${state.selectedCharacter}/01_idle_front.png`); player.id='player'; player.style.left=playerPos.x+'px'; player.style.top=playerPos.y+'px'; world.append(player);
 
-    const help=el('div','',{text:'Clique no chão para caminhar. Clique em uma célula para plantar/colher. Clientes chegam à banca e compram automaticamente quando houver estoque.'}); help.id='help-strip'; viewport.append(help);
+    const help=el('div','',{text:'Clique no chão para caminhar. Clique em uma célula para plantar/colher. Clientes compram na cerca. Clique nos dólares para recolher.'}); help.id='help-strip'; viewport.append(help);
 
     world.addEventListener('pointerdown', onWorldPointer);
   }
@@ -190,9 +199,10 @@
     const field=document.getElementById('tomato-field'); if(!field)return; field.innerHTML='';
     state.tomatoPlots.forEach((p,i)=>{
       const cell=el('div','plot '+p.state); cell.dataset.index=i;
+      positionPlot(cell,i,'tomato');
       const im=img(cropImg('tomato',p.state)); cell.append(im);
       if(p.state==='mature') cell.append(el('div','ready',{text:'✓'}));
-      if(p.state==='seed'||p.state==='growing') cell.append(el('div','timer',{text:cropRemaining(p)+'s'}));
+      if(p.state==='seed'||p.state==='growing') cell.append(el('div','timer',{text:cropRemaining(p,'tomato')+'s'}));
       cell.onclick=(e)=>{e.stopPropagation(); handleTomatoPlot(i);};
       field.append(cell);
     });
@@ -200,12 +210,12 @@
   function renderWheatField(){
     const field=document.getElementById('wheat-field'); if(!field)return; field.innerHTML='';
     state.wheatPlots.forEach((p,i)=>{
-      const cell=el('div','wheat-plot'); const im=img(cropImg('wheat',p.state)); cell.append(im);
+      const cell=el('div','wheat-plot '+p.state); positionPlot(cell,i,'wheat'); const im=img(cropImg('wheat',p.state)); cell.append(im);
       if(p.state==='seed'||p.state==='growing') cell.append(el('div','timer',{text:cropRemaining(p)+'s'}));
       cell.onclick=(e)=>{e.stopPropagation(); handleWheatPlot(i);}; field.append(cell);
     });
   }
-  function cropRemaining(p){ const age=(Date.now()-p.t)/1000; return p.state==='seed'?Math.max(0,Math.ceil(4-age)):Math.max(0,Math.ceil(8-age)); }
+  function cropRemaining(p,type='wheat'){ const age=(Date.now()-p.t)/1000; const phase=type==='tomato'?3:4; return Math.max(0,Math.ceil((p.state==='seed'?phase:phase*2)-age)); }
 
   function handleTomatoPlot(i){
     const p=state.tomatoPlots[i]; const pos=plotWorldPos(i,'tomato');
@@ -220,9 +230,18 @@
     else if(p.state==='mature') moveTo(pos.x,pos.y,()=>harvestCrop('wheat',i));
     else toast('O trigo ainda está crescendo.');
   }
+  function plotLocalPos(i,type){
+    const col=i%4,row=Math.floor(i/4);
+    return {x:(type==='tomato'?310:260)+(col-row)*86,y:100+(col+row)*48};
+  }
+  function positionPlot(cell,i,type){
+    const pos=plotLocalPos(i,type);
+    cell.style.left=(pos.x-92)+'px';cell.style.top=(pos.y-184)+'px';
+    cell.style.zIndex=10+Math.floor(i/4)+i%4;
+  }
   function plotWorldPos(i,type){
-    if(type==='tomato'){ const col=i%4,row=Math.floor(i/4); return {x:800+col*145,y:705+row*145}; }
-    const col=i%4,row=Math.floor(i/4); return {x:1885+col*122,y:625+row*118};
+    const pos=plotLocalPos(i,type);
+    return {x:(type==='tomato'?760:1840)+pos.x,y:(type==='tomato'?650:570)+pos.y+32};
   }
   function useEnergy(n){ if(state.energy<n){toast('Energia insuficiente. Aguarde a recuperação.'); return false;} state.energy-=n; return true; }
   function plantCrop(type,i){
@@ -235,7 +254,7 @@
   }
   function harvestCrop(type,i){
     if(!useEnergy(1))return;
-    const plots=type==='tomato'?state.tomatoPlots:state.wheatPlots; plots[i]={state:'empty',t:0};
+    const plots=type==='tomato'?state.tomatoPlots:state.wheatPlots; plots[i]=type==='tomato'?{state:'seed',t:Date.now()}:{state:'empty',t:0};
     state.inventory[type==='tomato'?'tomato':'wheat']++;
     if(type==='tomato') state.harvestedTomatoes++;
     playAction('14_action_harvest.png',650); burst(type==='tomato'?'vfx/harvest_tomato.png':'vfx/harvest_wheat.png',playerPos.x,playerPos.y-90,140); toast(type==='tomato'?'+1 tomate':'+1 trigo'); updateAll(); tryServeCustomers(); saveState();
@@ -271,19 +290,24 @@
     currentActionTimer=setTimeout(()=>{ if(player&&!moveTarget) player.src=A+`character_frames/${state.selectedCharacter}/01_idle_front.png`; },duration);
   }
 
+  function sideWalkFrame(dx,phase){
+    const index=(dx<0?0:2)+(phase%2);
+    return `${String(9+index).padStart(2,'0')}_walk_side_0${index+1}.png`;
+  }
+
   function updateMovement(dt){
     if(!player||!moveTarget)return;
     const dx=moveTarget.x-playerPos.x, dy=moveTarget.y-playerPos.y; const dist=Math.hypot(dx,dy);
     const speed=250;
     if(dist<8){
-      playerPos={...moveTarget}; moveTarget=null; player.style.left=playerPos.x+'px'; player.style.top=playerPos.y+'px'; player.src=A+`character_frames/${state.selectedCharacter}/01_idle_front.png`;
+      playerPos={...moveTarget}; moveTarget=null; player.style.transform='translate(-50%,-88%) scaleX(1)'; player.style.left=playerPos.x+'px'; player.style.top=playerPos.y+'px'; player.src=A+`character_frames/${state.selectedCharacter}/01_idle_front.png`;
       const cb=moveCallback; moveCallback=null; if(cb) setTimeout(cb,120); return;
     }
     const step=Math.min(dist,speed*dt); playerPos.x+=dx/dist*step; playerPos.y+=dy/dist*step;
     walkClock+=dt; if(walkClock>.13){walkClock=0;walkFrame=(walkFrame+1)%4;}
     const side=Math.abs(dx)>Math.abs(dy)*.65;
     let frame;
-    if(side){ frame=`${String(9+walkFrame).padStart(2,'0')}_walk_side_0${walkFrame+1}.png`; player.style.transform=`translate(-50%,-88%) scaleX(${dx<0?-1:1})`; }
+    if(side){ frame=sideWalkFrame(dx,walkFrame); player.style.transform='translate(-50%,-88%) scaleX(1)'; }
     else if(dy<0){ frame=`${String(7+(walkFrame%2)).padStart(2,'0')}_walk_back_0${(walkFrame%2)+1}.png`; player.style.transform='translate(-50%,-88%) scaleX(1)'; }
     else { frame=`${String(5+(walkFrame%2)).padStart(2,'0')}_walk_front_0${(walkFrame%2)+1}.png`; player.style.transform='translate(-50%,-88%) scaleX(1)'; }
     player.src=A+`character_frames/${state.selectedCharacter}/${frame}`;
@@ -303,41 +327,76 @@
     const id=pool[(customerSeq-1)%pool.length];
     const wantsEgg = customerSeq%4===0;
     const item=wantsEgg?'egg':'tomato'; const qty=wantsEgg?1:1+(customerSeq%3);
-    const c={id:customerSeq++, charId:id, item, qty, x:2680,y:1360,targetX:2250,targetY:1320+customers.length*92,status:'walking',frame:0,clock:0,serveAt:0};
+    let spotIndex=-1;
+    for(let offset=0;offset<SALE_SPOTS.length;offset++){
+      const candidate=(nextSaleSpot+offset)%SALE_SPOTS.length;
+      if(!customers.some(c=>c.spotIndex===candidate && c.status!=='leaving')){spotIndex=candidate;break;}
+    }
+    if(spotIndex<0)return;
+    nextSaleSpot=(spotIndex+1)%SALE_SPOTS.length;
+    const spot=SALE_SPOTS[spotIndex];
+    const c={id:customerSeq++, charId:id, item, qty, spotIndex, x:2740,y:1430,targetX:spot.x,targetY:spot.y,status:'walking',frame:0,clock:0,serveAt:0};
     c.el=img(`character_frames/${id}/09_walk_side_01.png`,'customer'); c.el.style.left=c.x+'px';c.el.style.top=c.y+'px'; world.append(c.el);
     c.bubble=el('div','customer-bubble',{text:`${item==='tomato'?'🍅':'🥚'} × ${qty}`}); world.append(c.bubble); customers.push(c); lastCustomerAt=now;
   }
   function updateCustomers(dt,now){
     customers.forEach((c,idx)=>{
       if(c.status==='walking'){
-        c.targetY=1320+idx*92; const dx=c.targetX-c.x,dy=c.targetY-c.y,dist=Math.hypot(dx,dy); const speed=120;
+        const dx=c.targetX-c.x,dy=c.targetY-c.y,dist=Math.hypot(dx,dy); const speed=120;
         if(dist<5){c.x=c.targetX;c.y=c.targetY;c.status='waiting';c.serveAt=now+800;c.el.src=A+`character_frames/${c.charId}/03_idle_side_a.png`;}
-        else {const s=Math.min(dist,speed*dt);c.x+=dx/dist*s;c.y+=dy/dist*s;c.clock+=dt;if(c.clock>.16){c.clock=0;c.frame=(c.frame+1)%4;} c.el.src=A+`character_frames/${c.charId}/${String(9+c.frame).padStart(2,'0')}_walk_side_0${c.frame+1}.png`;c.el.style.transform='translate(-50%,-85%) scaleX(-1)';}
+        else {const s=Math.min(dist,speed*dt);c.x+=dx/dist*s;c.y+=dy/dist*s;c.clock+=dt;if(c.clock>.16){c.clock=0;c.frame=(c.frame+1)%4;} c.el.src=A+`character_frames/${c.charId}/${sideWalkFrame(dx,c.frame)}`;c.el.style.transform='translate(-50%,-85%) scaleX(1)';}
       } else if(c.status==='waiting' && now>=c.serveAt){
         const have=state.inventory[c.item];
         if(have>=c.qty){ serveCustomer(c); }
         else { c.bubble.classList.add('waiting'); c.bubble.textContent=`${c.item==='tomato'?'🍅':'🥚'} × ${c.qty} • aguardando`; c.serveAt=now+1400; }
       } else if(c.status==='leaving'){
-        const dx=2740-c.x,dy=1510-c.y,dist=Math.hypot(dx,dy); if(dist<8){c.remove=true;} else {const s=Math.min(dist,145*dt);c.x+=dx/dist*s;c.y+=dy/dist*s;c.clock+=dt;if(c.clock>.16){c.clock=0;c.frame=(c.frame+1)%4;} c.el.src=A+`character_frames/${c.charId}/${String(9+c.frame).padStart(2,'0')}_walk_side_0${c.frame+1}.png`;c.el.style.transform='translate(-50%,-85%) scaleX(1)';}
+        const dx=2740-c.x,dy=1510-c.y,dist=Math.hypot(dx,dy); if(dist<8){c.remove=true;} else {const s=Math.min(dist,145*dt);c.x+=dx/dist*s;c.y+=dy/dist*s;c.clock+=dt;if(c.clock>.16){c.clock=0;c.frame=(c.frame+1)%4;} c.el.src=A+`character_frames/${c.charId}/${sideWalkFrame(dx,c.frame)}`;c.el.style.transform='translate(-50%,-85%) scaleX(1)';}
       }
       c.el.style.left=c.x+'px';c.el.style.top=c.y+'px'; c.bubble.style.left=c.x+'px';c.bubble.style.top=(c.y-95)+'px';
     });
     customers.filter(c=>c.remove).forEach(c=>{c.el.remove();c.bubble.remove();}); customers=customers.filter(c=>!c.remove);
   }
   function serveCustomer(c){
-    state.inventory[c.item]-=c.qty; const unit=c.item==='tomato'?24:18; const total=unit*c.qty; state.coins+=total;state.revenue+=total;if(c.item==='tomato')state.totalSold+=c.qty;
-    c.status='leaving';c.bubble.classList.remove('waiting');c.bubble.textContent=`+$${total} ✓`;c.serveAt=Infinity; burst('vfx/coin.png',2290,1150,105); renderCashPile(); advanceTasks(); updateAll(); saveState();
+    state.inventory[c.item]-=c.qty; const unit=c.item==='tomato'?24:18; const total=unit*c.qty; state.pendingCash[c.spotIndex]+=total;state.revenue+=total;if(c.item==='tomato')state.totalSold+=c.qty;
+    c.status='leaving';c.bubble.classList.remove('waiting');c.bubble.textContent=`$${total} deixados ✓`;c.serveAt=Infinity; burst('vfx/coin.png',SALE_SPOTS[c.spotIndex].x,SALE_SPOTS[c.spotIndex].cashY,105); renderCashPile(); advanceTasks(); updateAll(); saveState();
   }
   function tryServeCustomers(){customers.forEach(c=>{if(c.status==='waiting')c.serveAt=0;});}
 
-  function renderCashPile(){ const cash=document.getElementById('market-cash'); if(!cash)return; cash.innerHTML=''; const bundles=Math.min(9,Math.floor(state.revenue/40)); for(let i=0;i<bundles;i++){const n=el('div','cash-note',{text:'$'});n.style.left=(i%3)*44+'px';n.style.top=(70-Math.floor(i/3)*26-(i%3)*3)+'px';n.style.transform=`rotate(${(i%2?2:-2)}deg)`;cash.append(n);} }
+  function renderCashPile(){
+    const cash=document.getElementById('market-cash'); if(!cash)return; cash.innerHTML='';
+    state.pendingCash.forEach((amount,index)=>{
+      if(amount<=0)return;
+      const spot=SALE_SPOTS[index];
+      const pile=el('button','cash-pile interactable',{'aria-label':`Recolher $${amount}`,type:'button'});
+      pile.style.left=(spot.cashX-55)+'px';pile.style.top=(spot.cashY-70)+'px';
+      pile.append(el('span','cash-bundle',{text:'💵'}),el('strong','',{text:`$${amount}`}));
+      pile.onclick=e=>{e.stopPropagation();collectCash(index);};cash.append(pile);
+    });
+  }
+  function collectCash(index){
+    const spot=SALE_SPOTS[index];
+    moveTo(spot.cashX,spot.cashY,()=>{
+      const amount=state.pendingCash[index]; if(amount<=0)return;
+      state.pendingCash[index]=0;state.coins+=amount;
+      playAction('15_action_carry.png',700);toast(`+$${amount} recolhidos!`);
+      burst('vfx/coin.png',spot.cashX,spot.cashY-65,100);updateAll();saveState();
+    });
+  }
 
   function burst(asset,x,y,w){ const n=addImage(asset,x-w/2,y-w/2,w,3000); n.style.transition='transform .7s ease,opacity .7s ease'; setTimeout(()=>{n.style.transform='translateY(-60px) scale(1.15)';n.style.opacity='0';},20);setTimeout(()=>n.remove(),780); }
 
   function updateCropStates(){
     let changed=false;
-    const check=(plots)=>plots.forEach(p=>{if(p.state==='seed'&&Date.now()-p.t>=4000){p.state='growing';changed=true;} else if(p.state==='growing'&&Date.now()-p.t>=8000){p.state='mature';changed=true;}});
-    check(state.tomatoPlots);check(state.wheatPlots); if(changed){renderTomatoField();renderWheatField();saveState();}
+    const now=Date.now();
+    const check=(plots,phase)=>plots.forEach(p=>{
+      if(p.state!=='seed'&&p.state!=='growing')return;
+      const age=now-p.t;
+      const next=age>=phase*2?'mature':age>=phase?'growing':'seed';
+      if(p.state!==next){p.state=next;changed=true;}
+    });
+    check(state.tomatoPlots,3000);check(state.wheatPlots,4000);
+    if(changed){renderTomatoField();renderWheatField();saveState();}
+
   }
   function updateEggs(now){ if(now-lastEggAt>12000 && state.eggsReady<6){state.eggsReady++;lastEggAt=now;updateAll();} }
   function regenEnergy(now){ if(!regenEnergy.last)regenEnergy.last=now; if(now-regenEnergy.last>8000){regenEnergy.last=now;if(state.energy<state.maxEnergy){state.energy++;updateHUD();}} }
