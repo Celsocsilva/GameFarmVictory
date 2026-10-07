@@ -1,0 +1,24 @@
+{
+  "frames": [
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_01_approach.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_02_prepare.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_03_raise_sickle.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_04_swing.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_05_cutting.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_06_more_cut.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_07_gather.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_08_pick_up.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_09_hold_bundle.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_10_carry.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_11_walk_away.png",
+    "assets/characters/actions/wheat_harvest_sickle/frames/wheat_harvest_sickle_12_exit.png"
+  ],
+  "states": [
+    "assets/crops/wheat/wheat_full.png",
+    "assets/crops/wheat/wheat_stage_01.png",
+    "assets/crops/wheat/wheat_stage_02.png",
+    "assets/crops/wheat/wheat_stage_03.png",
+    "assets/crops/wheat/wheat_empty_harvested.png",
+    "assets/crops/wheat/wheat_bundle_pickup.png"
+  ]
+}
