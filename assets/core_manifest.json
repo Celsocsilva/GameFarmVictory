@@ -1,0 +1,25 @@
+{
+  "terrain": [
+    "terrain/grass_01.png",
+    "terrain/grass_02.png",
+    "terrain/water_01.png",
+    "terrain/water_bank_01.png",
+    "terrain/path_straight.png",
+    "terrain/path_curve.png",
+    "terrain/path_cross.png"
+  ],
+  "crops": [
+    "crops/wheat_seed.png",
+    "crops/wheat_growing.png",
+    "crops/wheat_mature.png",
+    "crops/tomato_seed.png",
+    "crops/tomato_growing.png",
+    "crops/tomato_mature.png"
+  ],
+  "buildings": [
+    "buildings/house.png",
+    "buildings/barn.png",
+    "buildings/market.png",
+    "buildings/chicken_coop.png"
+  ]
+}
