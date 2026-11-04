@@ -1,27 +1,11 @@
-Farm Victory Wheat Harvest Assets
+# GameFarmVictory
 
-Estrutura principal:
-- assets/characters/actions/wheat_harvest_sickle/frames/
-- assets/crops/wheat/
+Projeto em reconstrução em uma nova stack.
 
-Frames da animação:
-01 approach
-02 prepare
-03 raise sickle
-04 swing
-05 cutting
-06 more cut
-07 gather
-08 pick up
-09 hold bundle
-10 carry
-11 walk away
-12 exit
+A versão anterior (código em HTML/JS, sprites em `assets/` e regras do jogo em `docs/`) foi removida desta branch, mas continua disponível no histórico do Git, no commit `1a85c87`.
 
-Estados do trigo:
-- wheat_full.png
-- wheat_stage_01.png
-- wheat_stage_02.png
-- wheat_stage_03.png
-- wheat_empty_harvested.png
-- wheat_bundle_pickup.png
+Para recuperar um arquivo da versão anterior:
+
+```bash
+git checkout 1a85c87 -- caminho/do/arquivo
+```
