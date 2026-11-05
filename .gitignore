@@ -1,0 +1,11 @@
+.godot/
+.import/
+exported/
+builds/
+*.tmp
+*.log
+.env
+credentials/
+*.keystore
+*.p12
+*.mobileprovision

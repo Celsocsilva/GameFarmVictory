@@ -1,0 +1,19 @@
+name: Validate Godot
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  project-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate foundation
+        run: |
+          test -f project.godot
+          test -f scenes/core/main.tscn
+          test -f scripts/core/main.gd
+          test -f AGENTS.md
+          test -f docs/architecture/overview.md

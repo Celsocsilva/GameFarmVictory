@@ -1,0 +1,11 @@
+name: iOS build (disabled)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gated:
+    if: false
+    runs-on: macos-latest
+    steps:
+      - run: echo "Habilitar somente após configurar macOS, Xcode, certificados e provisioning."
