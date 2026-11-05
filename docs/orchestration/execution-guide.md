@@ -7,3 +7,15 @@ From the repository root:
     python -m unittest discover -s orchestration/tests
 
 The first command persists the demand. The second creates a structured handoff for AGENT-02. A human forwards that package to the appropriate ChatGPT or Claude session and records the result in docs/evidence.
+
+## Godot no Windows
+
+Godot 4.7.2 está instalada em:
+
+    C:\Users\Celso\OneDrive\Documentos\PROJECTS\Godot_v4.7.2-stable_win64
+
+Executável configurado para validações:
+
+    C:\Users\Celso\OneDrive\Documentos\PROJECTS\Godot_v4.7.2-stable_win64\Godot_v4.7.2-stable_win64.exe
+
+O caminho é uma configuração de ambiente de desenvolvimento; confirme a existência do executável antes de executar validações headless.
