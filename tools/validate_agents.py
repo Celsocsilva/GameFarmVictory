@@ -10,7 +10,12 @@ REQUIRED = [
     "Workflow detalhado", "Critérios de decisão", "aprovação humana",
     "Contrato de saída", "colaboração", "Falhas", "indicadores", "conclusão",
 ]
-files = sorted(p for p in AGENTS.glob("*.md") if p.name != "operational-standard.md")
+EXPECTED = {
+    "orchestrator.md", "game-director.md", "godot-architect.md",
+    "gameplay-engineer.md", "technical-artist.md", "mobile-uiux.md",
+    "qa-engineer.md", "mobile-devops.md", "engineering-reviewer.md",
+}
+files = sorted(AGENTS / name for name in EXPECTED)
 errors = []
 if len(files) != 9:
     errors.append(f"expected 9 agent files, found {len(files)}")
@@ -23,6 +28,11 @@ if not (ROOT / "project.godot").exists():
     errors.append("project.godot missing")
 if not (ROOT / "docs" / "evidence" / "README.md").exists():
     errors.append("docs/evidence/README.md missing")
+if not (AGENTS / "operational-standard.md").exists():
+    errors.append("agents/operational-standard.md missing")
+for canonical in [f"agent-{i:02d}" for i in range(1, 9)]:
+    if not any(p.name.startswith(canonical) for p in AGENTS.glob("*.md")):
+        errors.append(f"canonical contract missing: {canonical}")
 if errors:
     print("\n".join(errors))
     sys.exit(1)

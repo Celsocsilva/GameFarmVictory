@@ -1,0 +1,27 @@
+version: 1
+gates:
+  - id: GOV-001
+    name: governance
+    condition: policies_and_schemas_valid
+    evidence: validation_report
+    on_failure: block
+  - id: GODOT-001
+    name: godot-foundation
+    condition: project_files_and_scene_present
+    evidence: headless_or_static_report
+    on_failure: block
+  - id: TEST-001
+    name: tests
+    condition: applicable_tests_pass
+    evidence: test_report
+    on_failure: block
+  - id: REVIEW-001
+    name: engineering-review
+    condition: no_p0_p1
+    evidence: review_report
+    on_failure: block
+  - id: HUMAN-001
+    name: human-approval
+    condition: required_approval_recorded
+    evidence: approval_record
+    on_failure: await_approval

@@ -1,0 +1,7 @@
+version: 1
+tools:
+  filesystem: {allowed: [read, write_workspace], destructive: approval_required}
+  git: {allowed: [status, diff, branch, add, commit, push], force_push: forbidden}
+  godot: {allowed: [headless_validate, test, export_non_release], release: approval_required}
+  github: {allowed: [issues, files, branches, prs, checks], writes: explicit_permission}
+  llm: {enabled_by_default: false, mode: assisted}

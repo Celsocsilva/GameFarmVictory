@@ -1,0 +1,11 @@
+version: 1
+agents:
+  AGENT-00: {file: agents/orchestrator.md, level: 4, domains: [coordination]}
+  AGENT-01: {file: agents/agent-01-game-director.md, level: 1, domains: [product]}
+  AGENT-02: {file: agents/agent-02-solution-architect.md, level: 2, domains: [architecture]}
+  AGENT-03: {file: agents/agent-03-gameplay-engineer.md, level: 2, domains: [gameplay]}
+  AGENT-04: {file: agents/agent-04-technical-artist.md, level: 2, domains: [art]}
+  AGENT-05: {file: agents/agent-05-mobile-uiux.md, level: 2, domains: [ui]}
+  AGENT-06: {file: agents/agent-06-qa-engineer.md, level: 3, domains: [qa]}
+  AGENT-07: {file: agents/agent-07-devops-engineer.md, level: 4, domains: [devops]}
+  AGENT-08: {file: agents/agent-08-engineering-reviewer.md, level: 1, domains: [review]}

@@ -165,3 +165,14 @@ Os comandos de execução, testes e exportação serão documentados assim que a
 ## Segurança e qualidade
 
 Toda alteração deve preservar funcionalidades aprovadas, registrar mudanças econômicas, evitar segredos, manter rastreabilidade entre requisito, branch, PR, teste e release, e declarar somente testes realmente executados. Builds Android e iOS exigem credenciais e ambientes apropriados; o Windows não deve ser tratado como ambiente de build local para iOS.
+
+## Orquestração agêntica
+
+O repositório também contém uma implementação assistida em orchestration/, dividida em Governance, Specialized Agents e Execution & Evidence. Ela persiste demandas em orchestration/state/, controla transições, gera handoffs versionados e registra evidências.
+
+Para executar a validação local:
+
+    python tools/validate_agents.py
+    python -m unittest discover -s orchestration/tests -v
+
+O modo assistido não exige API de LLM: o CLI prepara o pacote e o operador encaminha-o à sessão apropriada de ChatGPT ou Claude. Adaptadores automáticos de LLM permanecem desativados por padrão.

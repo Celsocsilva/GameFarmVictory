@@ -1,0 +1,4 @@
+name: release
+states: [BACKLOG, REFINEMENT, READY, IN_PROGRESS, TESTING, AWAITING_APPROVAL, MERGE_READY, DONE]
+required_agents: [AGENT-07, AGENT-06, AGENT-08]
+human_approval: required

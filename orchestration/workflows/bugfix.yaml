@@ -1,0 +1,3 @@
+name: bugfix
+states: [BACKLOG, REFINEMENT, IN_PROGRESS, TESTING, CODE_REVIEW, DONE]
+required_agents: [AGENT-03, AGENT-06, AGENT-08]

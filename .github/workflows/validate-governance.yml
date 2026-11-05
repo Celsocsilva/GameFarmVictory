@@ -1,0 +1,21 @@
+name: Validate governance and orchestration
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate agent contracts
+        run: python tools/validate_agents.py
+      - name: Validate orchestration tests
+        run: python -m unittest discover -s orchestration/tests -v
+      - name: Validate JSON schemas
+        run: python -c "import json, pathlib; [json.loads(p.read_text()) for p in pathlib.Path('orchestration/contracts').glob('*.json')]"
