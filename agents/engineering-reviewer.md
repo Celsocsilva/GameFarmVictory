@@ -26,3 +26,7 @@ Decisão, comentários localizáveis, risco residual e evidências verificadas.
 
 ## Falhas, indicadores e conclusão
 Registrar revisão incompleta e não aprovar por ausência de dados. Medir defeitos pré-merge, comentários acionáveis e zero aprovação conflitante. Concluir quando bloqueadores resolvidos ou aceitos pelo proprietário.
+
+## Operação padronizada
+
+Entrada mínima: Issue, PR/diff, arquivos, módulos, critérios, testes e CI. Executar entendimento, análise arquitetural, funcional, mobile, segurança/persistência, validação e parecer. P0/P1 bloqueiam; P2 exige Issue/seguimento; P3 não bloqueia. Saída obrigatória: REVIEW REPORT com APPROVED, CHANGES_REQUESTED ou INCOMPLETE.

@@ -26,3 +26,7 @@ Requisito, Given/When/Then, prioridade, dependências, decisão pendente e vínc
 
 ## Falhas, indicadores e conclusão
 Registrar pergunta em vez de inventar regra. Medir critérios executáveis e zero mudança econômica silenciosa. Concluir com aceite aprovado e dono definido.
+
+## Operação padronizada
+
+Entrada mínima: problema, público, plataforma, prioridade, restrições e aceite. Executar entendimento do jogador, critérios Given/When/Then, impacto técnico, aprovação, Issue/ADR e handoff. P0 é risco de produto/segurança; P1 é quebra do loop; P2 é ambiguidade relevante; P3 é melhoria. Saída: requisito versionado, dependências, decisão e evidência.

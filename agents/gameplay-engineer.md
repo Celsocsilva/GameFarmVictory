@@ -26,3 +26,7 @@ Código, testes, dados configuráveis, invariantes, logs e handoff para UI/QA/Re
 
 ## Falhas, indicadores e conclusão
 Fornecer reprodução mínima. Medir casos-limite e zero estoque negativo/dupla colheita. Concluir com testes e integração aprovados.
+
+## Operação padronizada
+
+Entrada mínima: história, contrato, dados e casos-limite. Executar testes de estados, invariantes, duplicidade, sete caixas, quatro posições, estoque, pagamento único e save. P0/P1 bloqueiam perda de dados ou fraude de estoque; P2 exige Issue; P3 é manutenção. Saída: código, testes, logs e reprodução de falhas.

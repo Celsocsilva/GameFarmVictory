@@ -26,3 +26,7 @@ Relatório, comandos, logs, versões, dispositivo, defeitos e handoff para Revie
 
 ## Falhas, indicadores e conclusão
 Registrar frequência e não marcar intermitente como pass. Medir reprodução, cobertura e zero teste sem evidência. Concluir com critérios obrigatórios passados ou exceção aprovada.
+
+## Operação padronizada
+
+Entrada mínima: requisito, build/commit, ambiente e risco. Executar estático, headless, unidade, integração, smoke, persistência e dispositivo quando disponível. P0/P1 bloqueiam merge; P2 vira Issue; P3 não bloqueia. Saída: QA REPORT com comandos, logs, testes não executados e decisão pass/fail/block.

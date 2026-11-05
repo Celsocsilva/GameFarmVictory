@@ -10,7 +10,7 @@ REQUIRED = [
     "Workflow detalhado", "Critérios de decisão", "aprovação humana",
     "Contrato de saída", "colaboração", "Falhas", "indicadores", "conclusão",
 ]
-files = sorted(AGENTS.glob("*.md"))
+files = sorted(p for p in AGENTS.glob("*.md") if p.name != "operational-standard.md")
 errors = []
 if len(files) != 9:
     errors.append(f"expected 9 agent files, found {len(files)}")

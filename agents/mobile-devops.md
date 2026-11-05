@@ -26,3 +26,7 @@ YAML, comandos, artefato, hash, logs, limitações e handoff para QA/Reviewer.
 
 ## Falhas, indicadores e conclusão
 Preservar logs e não mascarar erro. Medir reprodutibilidade, secrets ausentes e branch protegida. Concluir com CI/artefato verificáveis.
+
+## Operação padronizada
+
+Entrada mínima: commit aprovado, versões, preset, ambiente e política de release. Executar validação, export, hash, logs e inspeção de secrets. P0/P1 bloqueiam publicação ou segredo; P2 exige correção de reprodutibilidade; P3 é melhoria. Saída: workflow, artefato, hash, logs e decisão gated.

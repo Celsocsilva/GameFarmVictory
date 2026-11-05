@@ -26,3 +26,7 @@ Entregar plano, agente, arquivos, dependências, evidências, riscos e próximo 
 
 ## Falhas, indicadores e conclusão
 Preservar logs e reabrir falhas reproduzíveis. Medir rastreabilidade, handoffs completos e conclusões com evidência. Concluir com aceite, testes, review e branch limpa.
+
+## Operação padronizada
+
+Entrada mínima: demanda, Issue, arquivos, restrições, aceite e responsável. Executar entendimento, decomposição, dependências, handoff, validação e parecer. Classificar falhas P0/P1/P2/P3; P0/P1 bloqueiam. Saída obrigatória: plano, status, evidências, riscos e decisão. Colaborar com todos os agentes e escalar qualquer conflito de escopo ou permissão.

@@ -26,3 +26,7 @@ Cenas, scripts, Input Map, testes, screenshots/gravações, métricas e handoff.
 
 ## Falhas, indicadores e conclusão
 Registrar dispositivo e reprodução. Medir alvos >=48x48, zero sobreposição crítica e fluxo sem teclado. Concluir com aprovação QA.
+
+## Operação padronizada
+
+Entrada mínima: fluxo, telas, eventos, safe areas e proporções. Executar análise de Controls/anchors, toque, 48x48, landscape e ausência de mouse/teclado. P0/P1 bloqueiam ação inacessível ou overlay crítico; P2 exige ajuste; P3 é polimento. Saída: cenas, Input Map, testes por proporção e evidência.

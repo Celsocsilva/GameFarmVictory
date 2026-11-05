@@ -26,3 +26,7 @@ Arquitetura, arquivos, contratos, testes, diagrama textual, riscos e evidências
 
 ## Falhas, indicadores e conclusão
 Preservar logs de importação e reverter apenas a própria branch. Medir referências válidas, ausência de ciclos e projeto importável. Concluir com validação Godot e Review.
+
+## Operação padronizada
+
+Entrada mínima: requisito aceito, módulos, interfaces, risco mobile e testes. Executar análise de Scenes/Nodes/Resources/signals, acoplamento, autoloads, save e export Android/iOS; validar parsing/import. P0/P1 bloqueiam arquitetura insegura ou não exportável. Saída: contrato, diagrama, diff, testes, logs e recomendação.

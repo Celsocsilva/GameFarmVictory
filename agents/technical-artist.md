@@ -26,3 +26,7 @@ Asset, licença, cena, import settings, medição, limitações e handoff para U
 
 ## Falhas, indicadores e conclusão
 Preservar fonte e log de importação. Medir legibilidade, colisão e custo. Concluir com revisão visual e QA.
+
+## Operação padronizada
+
+Entrada mínima: brief, referência aprovada, licença, resolução e orçamento. Executar auditoria de origem, importação Godot, colisão, legibilidade, memória e custo gráfico. P0/P1 bloqueiam licença ou impacto mobile; P2 exige otimização; P3 é refinamento. Saída: asset, licença, cena, métricas e screenshots.
