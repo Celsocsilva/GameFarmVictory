@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/farm_world.gd" id="1_world"]
+[ext_resource type="PackedScene" path="res://scenes/player/farmer.tscn" id="2_farmer"]
+
+[node name="FarmWorld" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="Farmer" parent="." instance=ExtResource("2_farmer")]
+position = Vector3(0, 1, 0)
