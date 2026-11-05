@@ -4,6 +4,7 @@ class_name FarmerController
 @export var move_speed: float = 4.0
 @export var acceleration: float = 18.0
 @export var deceleration: float = 24.0
+@export var gravity: float = 18.0
 @export var joystick_path: NodePath = NodePath("../HUD/VirtualJoystick")
 
 var _joystick: Control
@@ -21,7 +22,10 @@ func _physics_process(delta: float) -> void:
     var rate := acceleration if input_vector.length_squared() > 0.001 else deceleration
     velocity.x = move_toward(velocity.x, target.x, rate * delta)
     velocity.z = move_toward(velocity.z, target.z, rate * delta)
-    velocity.y = 0.0
+    if is_on_floor():
+        velocity.y = -0.5
+    else:
+        velocity.y -= gravity * delta
     if input_vector.length_squared() > 0.001:
         var facing := Vector3(input_vector.x, 0.0, input_vector.y)
         rotation.y = lerp_angle(rotation.y, atan2(-facing.x, -facing.z), min(1.0, delta * 12.0))

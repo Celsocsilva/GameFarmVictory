@@ -1,9 +1,10 @@
 extends Control
-class_name VirtualJoystick
+class_name FarmVirtualJoystick
 
 @export var dead_zone: float = 0.12
 @export var radius: float = 82.0
 var _touch_id: int = -1
+var _mouse_active: bool = false
 var _output := Vector2.ZERO
 var _knob := Vector2.ZERO
 
@@ -23,13 +24,21 @@ func _gui_input(event: InputEvent) -> void:
             _release()
     elif event is InputEventScreenDrag and event.index == _touch_id:
         _update_from_position(event.position)
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        _mouse_active = event.pressed
+        if event.pressed:
+            _update_from_position(event.position)
+        else:
+            _release()
+    elif event is InputEventMouseMotion and _mouse_active:
+        _update_from_position(event.position)
 
 func _update_from_position(position: Vector2) -> void:
     var center := size * 0.5
     var offset := position - center
-    var distance := min(offset.length(), radius)
+    var distance: float = minf(offset.length(), radius)
     _knob = offset.normalized() * distance if distance > 0.001 else Vector2.ZERO
-    var normalized := _knob / radius
+    var normalized: Vector2 = _knob / radius
     _output = Vector2.ZERO if normalized.length() < dead_zone else normalized
     queue_redraw()
 

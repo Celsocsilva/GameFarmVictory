@@ -19,6 +19,9 @@
 - Godot editor headless/import: PASS.
 - FarmWorld headless por 2 segundos: PASS; sem erros críticos reportados.
 - Teste automatizado de orquestração: PASS.
+- Execução gráfica F5 no checkout correto: PASS; screenshot capturado nesta revisão mostrando terreno, personagem, câmera, obstáculos e joystick.
+- Movimento visual por teclado no editor: PASS; personagem deslocou-se e a câmera acompanhou.
+- Aproximação visual ao prédio: PASS; personagem permaneceu separado do obstáculo, sem atravessá-lo durante o teste.
 
 ## Não executado
 
@@ -28,4 +31,4 @@
 
 ## Limitações
 
-O joystick foi implementado para entrada real de InputEventScreenTouch/InputEventScreenDrag. A confirmação ergonômica em 16:9, 19.5:9 e 20:9 depende de execução visual em dispositivo.
+O joystick foi implementado para entrada real de InputEventScreenTouch/InputEventScreenDrag e possui caminho de mouse para teste no editor. A confirmação ergonômica em 16:9, 19.5:9 e 20:9 depende de execução visual em dispositivo. A captura gráfica desta revisão foi feita na janela DEBUG Godot em 1280x720.
