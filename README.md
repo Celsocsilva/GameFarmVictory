@@ -1,24 +1,167 @@
-# GameFarmVictory
+# Farm Victory
 
-**Farm Victory** é um jogo casual de fazenda e gerenciamento (*Farm / Management*) desenvolvido com **prioridade para dispositivos móveis (Android e iOS)**, em perspectiva isométrica/2.5D e direção de arte com padrão comercial mobile premium.
+Farm Victory é um jogo casual mobile nativo de fazenda e gerenciamento, com câmera isométrica ou perspectiva elevada fixa, estética 2.5D e elementos 3D estilizados. O jogador cultiva, colhe, transporta e vende produtos enquanto expande sua propriedade.
 
-## Direção do projeto
+Este repositório é a base de reconstrução do projeto na Godot Engine. A prioridade é Android, mantendo compatibilidade arquitetural com iOS desde o início. O produto não será desenvolvido como site, PWA, aplicação HTML5 ou WebView.
 
-- **Plataforma principal:** mobile (Android e iOS), com controles por toque.
-- **Engine:** Godot 4.x; versão específica a validar e fixar na configuração do projeto.
-- **Linguagem preferencial:** GDScript, na edição padrão do Godot (sem .NET), salvo necessidade técnica justificada.
-- **Experiência principal:** cultivar, colher, transportar produtos em pilhas de até 7 caixas, abastecer uma bancada de venda sem cobertura, atender clientes do lado externo da cerca, recolher receitas e expandir a fazenda.
-- **Arquitetura:** projeto modular, preparado para desenvolvimento assistido por agentes, revisão de código, testes e CI.
-- **Distribuição web:** não é o objetivo principal desta reconstrução.
+## Visão do produto
 
-## Estado do repositório
+O primeiro ciclo jogável deverá permitir:
 
-Projeto em reconstrução em uma nova stack.
+1. Percorrer uma propriedade rural com câmera acompanhando o personagem.
+2. Plantar e colher tomates.
+3. Transportar a produção em uma pilha visível de até sete caixas.
+4. Descarregar os produtos em uma bancada física de madeira, sem cobertura, com pelo menos quatro posições.
+5. Atender clientes que permanecem do lado externo da cerca.
+6. Acumular pagamentos dentro da propriedade e recolher o dinheiro.
+7. Salvar, fechar e retomar a partida sem perder o progresso.
 
-A versão anterior (código em HTML/JS, sprites em `assets/` e regras do jogo em `docs/`) foi removida desta branch, mas continua disponível no histórico do Git, no commit `1a85c87`.
+O mapa deverá reservar espaço para expansão e futuras cadeias produtivas, incluindo trigo, milho, galinhas, ovos, vacas e leite. Conteúdo adicional será priorizado depois da validação do vertical slice.
 
-Para recuperar um arquivo da versão anterior:
+## Diretrizes aprovadas
 
-```bash
+- **Plataforma:** smartphones Android e iOS, inicialmente em orientação horizontal.
+- **Engine:** Godot Engine 4.7.2 Standard.
+- **Linguagem:** GDScript, com tipagem estática sempre que apropriado.
+- **Renderização:** Mobile como configuração inicial; Compatibility será avaliado por testes.
+- **Controles:** touchscreen, joystick virtual e interações por proximidade/toque.
+- **Cultivo:** `EMPTY → PLANTED → GROWING → READY → HARVESTED → EMPTY`.
+- **Tomates:** maturação inicial de referência em 25 segundos, configurável por recurso de cultura.
+- **Transporte:** limite inicial de sete caixas, separado do inventário lógico.
+- **Bancada:** estrutura física junto à cerca, sem toldo, tecido ou telhado.
+- **Clientes:** sempre fora da cerca; o fazendeiro abastece pelo lado interno.
+- **Receita:** pagamentos pendentes acumulam-se dentro da fazenda e só entram no saldo após coleta.
+- **Persistência:** arquivos versionados e seguros em `user://`; não usar armazenamento local de navegador.
+- **Web:** a implementação legada em HTML/JavaScript/CSS serve apenas como referência de regras e comportamento.
+
+## Estado atual
+
+O repositório está na **Fase 0 — Auditoria e consolidação**. Neste momento, a base contém a documentação de direção do produto e preserva o histórico Git do protótipo anterior. A fundação Godot, os assets migrados e o vertical slice ainda precisam ser preparados e validados.
+
+O legado foi removido da árvore atual, mas permanece no histórico. Para recuperar um arquivo específico da versão anterior:
+
+```powershell
 git checkout 1a85c87 -- caminho/do/arquivo
 ```
+
+Não apagar conteúdo legado, alterar regras econômicas ou substituir assets aprovados sem registrar a decisão correspondente.
+
+## Arquitetura alvo
+
+O projeto deverá separar estado, regras de negócio, apresentação visual e integrações de plataforma:
+
+| Domínio | Responsabilidade |
+| --- | --- |
+| Core | Estado da aplicação, eventos e configuração |
+| World | Mapa, câmera, terrenos e obstáculos |
+| Player | Controle, movimentação e animações |
+| Farming | Cultivo, crescimento e colheita |
+| Inventory | Itens, lotes, caixas e capacidade |
+| Commerce | Bancada, clientes, pedidos e vendas |
+| Economy | Saldo, pagamentos, custos e upgrades |
+| Progression | Áreas, missões e desbloqueios |
+| Animals | Animais e cadeias produtivas futuras |
+| UI | HUD, menus e interação touchscreen |
+| Persistence | Salvamento, carregamento e migração de dados |
+| Platform | Android, iOS e ciclo de vida do aplicativo |
+
+Cenas reutilizáveis, sinais e recursos configuráveis devem reduzir acoplamento. Economia não deve ficar embutida em scripts de animação ou componentes de interface. Regras independentes do motor devem possuir testes automatizados.
+
+## Organização de agentes
+
+O desenvolvimento assistido seguirá o fluxo:
+
+`Demanda → Refinamento → Arquitetura → Tarefas → Implementação → QA → Review → PR → Build Mobile → Homologação`
+
+Responsabilidades previstas:
+
+- Game Director / Product Owner: escopo, prioridades e critérios de aceitação.
+- Godot Solution Architect: cenas, recursos, contratos, sinais e padrões.
+- Gameplay Engineer: movimentação, cultivo, inventário, comércio e economia.
+- Technical Art & Animation: assets, materiais, câmera, animações e performance visual.
+- Mobile UI/UX Engineer: joystick, HUD, menus e adaptação a telas.
+- QA & Game Testing: testes unitários, integração, regressão e dispositivos reais.
+- GitHub & Mobile DevOps: branches, CI/CD, exportações e releases.
+- Engineering Reviewer: arquitetura, segurança, performance e efeitos colaterais.
+
+Cada agente deve operar dentro de seu escopo, documentar handoffs e solicitar aprovação humana para decisões de produto, publicação, credenciais ou mudanças irreversíveis.
+
+## Roadmap
+
+### Fase 0 — Auditoria e consolidação
+
+Inventariar código, assets, regras e documentação legados, classificando cada item como confirmado, legado sujeito a revisão ou novo requisito mobile. Registrar conflitos e decisões.
+
+### Fase 1 — Fundação Godot Mobile
+
+Fixar a versão Godot 4.7.2, configurar renderizador, orientação, resolução, Input Map, câmera, ciclo de vida e uma cena mínima executável em Android.
+
+### Fase 2 — Engenharia agêntica
+
+Criar `AGENTS.md`, `CLAUDE.md`, instruções individuais, contratos de entrada e saída, critérios de conclusão e regras de coordenação.
+
+### Fase 3 — GitHub e CI/CD
+
+Preparar validação headless, testes, Git LFS para binários selecionados, exportação Android e a preparação condicionada para iOS. O workflow iOS só deve ser habilitado quando houver macOS, Xcode, certificados e provisioning.
+
+### Fase 4 — Vertical slice
+
+Implementar o ciclo completo de cultivo, colheita, caixas, bancada, clientes, pagamentos, coleta e persistência sem depender de mouse, teclado ou navegador.
+
+### Fase 5 — Expansão do MVP
+
+Adicionar culturas, expansão de terrenos, animais, economia, missões, melhorias visuais, otimização e preparação para publicação.
+
+## Critérios do primeiro vertical slice
+
+O slice só será considerado funcional quando, em um Android real:
+
+- o personagem responder ao joystick touchscreen;
+- câmera e colisões funcionarem;
+- tomates puderem ser plantados e colhidos;
+- sete caixas forem o limite efetivo de transporte;
+- o descarregamento atualizar corretamente o inventário;
+- a bancada tiver quatro posições independentes;
+- clientes permanecerem fora da cerca;
+- vendas consumirem apenas estoque disponível;
+- pagamentos se acumularem e forem creditados uma única vez na coleta;
+- a partida persistir após fechar e reabrir;
+- a interface funcionar em diferentes proporções de tela;
+- o build Android for reproduzível e os testes forem registrados.
+
+## Git e contribuição
+
+O repositório oficial é [github.com/Celsocsilva/GameFarmVictory](https://github.com/Celsocsilva/GameFarmVictory). O histórico existente deve ser preservado.
+
+Branches recomendadas:
+
+- `main`: versão estável.
+- `feature/*`: novas funcionalidades.
+- `fix/*`: correções.
+- `refactor/*`: refatorações.
+- `release/*`: preparação de publicação.
+
+Alterações devem ser pequenas, rastreáveis a um requisito ou Issue e revisadas por Pull Request quando aplicável. Não fazer force push, publicar builds ou inserir segredos no repositório sem autorização.
+
+## Desenvolvimento local
+
+Pré-requisitos planejados:
+
+- Godot Engine 4.7.2 Standard.
+- Git.
+- Export templates da Godot para Android, quando a exportação estiver habilitada.
+- Android SDK/JDK compatíveis para builds locais.
+
+Clone o repositório e confira o estado:
+
+```powershell
+git clone https://github.com/Celsocsilva/GameFarmVictory.git
+cd GameFarmVictory
+git status
+```
+
+Os comandos de execução, testes e exportação serão documentados assim que a fundação Godot for criada e validada.
+
+## Segurança e qualidade
+
+Toda alteração deve preservar funcionalidades aprovadas, registrar mudanças econômicas, evitar segredos, manter rastreabilidade entre requisito, branch, PR, teste e release, e declarar somente testes realmente executados. Builds Android e iOS exigem credenciais e ambientes apropriados; o Windows não deve ser tratado como ambiente de build local para iOS.
