@@ -1,4 +1,7 @@
 .godot/
+.pytest_cache/
+__pycache__/
+*.py[cod]
 .import/
 exported/
 builds/
