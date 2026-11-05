@@ -1,11 +1,20 @@
 extends Node3D
 class_name FarmWorld
 
-const FARM_SIZE := 24.0
+@export_category("World Scale")
+@export var farm_size: float = 64.0
+@export var camera_orthographic_size: float = 12.0
+@export var camera_height: float = 14.0
+@export var camera_distance: float = 14.0
+@export var camera_follow_speed: float = 5.0
+@export var camera_dead_zone: Vector2 = Vector2(3.5, 2.5)
+@export var camera_limits: Vector2 = Vector2(26.0, 26.0)
+
 const JOYSTICK_SCENE := preload("res://scenes/ui/virtual_joystick.tscn")
 
 @onready var farmer: FarmerController = $Farmer
 var camera: Camera3D
+var camera_focus: Vector3
 
 func _ready() -> void:
     _build_environment()
@@ -13,12 +22,11 @@ func _ready() -> void:
     _build_obstacles()
     _build_camera()
     _build_hud()
+    camera_focus = farmer.global_position
 
 func _process(delta: float) -> void:
     if camera and farmer:
-        var desired := farmer.global_position + Vector3(0.0, 13.0, 13.0)
-        camera.global_position = camera.global_position.lerp(desired, min(1.0, delta * 5.0))
-        camera.look_at(farmer.global_position, Vector3.UP)
+        _update_camera_focus(delta)
 
 func _build_environment() -> void:
     var environment := WorldEnvironment.new()
@@ -41,22 +49,22 @@ func _build_ground() -> void:
     body.name = "Ground"
     var mesh := MeshInstance3D.new()
     var plane := BoxMesh.new()
-    plane.size = Vector3(FARM_SIZE, 0.4, FARM_SIZE)
+    plane.size = Vector3(farm_size, 0.4, farm_size)
     mesh.mesh = plane
     mesh.material_override = _material(Color(0.20, 0.52, 0.18))
     mesh.position.y = -0.2
     body.add_child(mesh)
     var collision := CollisionShape3D.new()
     var shape := BoxShape3D.new()
-    shape.size = Vector3(FARM_SIZE, 0.4, FARM_SIZE)
+    shape.size = Vector3(farm_size, 0.4, farm_size)
     collision.shape = shape
     collision.position.y = -0.2
     body.add_child(collision)
     add_child(body)
-    _add_boundary(Vector3(FARM_SIZE, 2.0, 0.4), Vector3(0, 1, -FARM_SIZE * 0.5))
-    _add_boundary(Vector3(FARM_SIZE, 2.0, 0.4), Vector3(0, 1, FARM_SIZE * 0.5))
-    _add_boundary(Vector3(0.4, 2.0, FARM_SIZE), Vector3(-FARM_SIZE * 0.5, 1, 0))
-    _add_boundary(Vector3(0.4, 2.0, FARM_SIZE), Vector3(FARM_SIZE * 0.5, 1, 0))
+    _add_boundary(Vector3(farm_size, 2.0, 0.4), Vector3(0, 1, -farm_size * 0.5))
+    _add_boundary(Vector3(farm_size, 2.0, 0.4), Vector3(0, 1, farm_size * 0.5))
+    _add_boundary(Vector3(0.4, 2.0, farm_size), Vector3(-farm_size * 0.5, 1, 0))
+    _add_boundary(Vector3(0.4, 2.0, farm_size), Vector3(farm_size * 0.5, 1, 0))
 
 func _build_obstacles() -> void:
     _add_box_obstacle("Fence", Vector3(5.0, 1.2, 0.35), Vector3(-5, 0.6, -2), Color(0.65, 0.38, 0.16))
@@ -115,9 +123,25 @@ func _add_boundary(size: Vector3, position: Vector3) -> void:
 func _build_camera() -> void:
     camera = Camera3D.new()
     camera.name = "IsometricCamera"
-    camera.position = farmer.global_position + Vector3(0, 13, 13)
+    camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+    camera.size = camera_orthographic_size
+    camera.position = farmer.global_position + Vector3(0, camera_height, camera_distance)
     camera.current = true
     add_child(camera)
+
+func _update_camera_focus(delta: float) -> void:
+    var offset := farmer.global_position - camera_focus
+    var desired_focus := camera_focus
+    if absf(offset.x) > camera_dead_zone.x:
+        desired_focus.x = farmer.global_position.x - signf(offset.x) * camera_dead_zone.x
+    if absf(offset.z) > camera_dead_zone.y:
+        desired_focus.z = farmer.global_position.z - signf(offset.z) * camera_dead_zone.y
+    desired_focus.x = clampf(desired_focus.x, -camera_limits.x, camera_limits.x)
+    desired_focus.z = clampf(desired_focus.z, -camera_limits.y, camera_limits.y)
+    camera_focus = camera_focus.lerp(desired_focus, minf(1.0, delta * camera_follow_speed))
+    var desired_camera := camera_focus + Vector3(0.0, camera_height, camera_distance)
+    camera.global_position = camera.global_position.lerp(desired_camera, minf(1.0, delta * camera_follow_speed))
+    camera.look_at(camera_focus, Vector3.UP)
 
 func _build_hud() -> void:
     var layer := CanvasLayer.new()
