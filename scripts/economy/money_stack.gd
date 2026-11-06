@@ -12,15 +12,17 @@ const COLUMNS := 3
 const ROWS := 5
 const SLOTS := COLUMNS * ROWS
 ## Tamanho de cada posição da base, no chão (X = fileira, Z = linha).
-const CELL_SIZE := Vector2(0.82, 0.78)
+## Maços e base 1,7x maiores que a primeira versão (0,82 x 0,78 por posição).
+const MONEY_SCALE := 1.7
+const CELL_SIZE := Vector2(0.82, 0.78) * MONEY_SCALE
 ## Largura do maço no chão; a profundidade segue a proporção da arte.
-const BUNDLE_WIDTH := 0.74
+const BUNDLE_WIDTH := 0.74 * MONEY_SCALE
 ## Altura de cada camada: a espessura do maço desenhado na arte.
-const LAYER_STEP := 0.06
+const LAYER_STEP := 0.06 * MONEY_SCALE
 ## Bloco de madeira: espessura, raio dos cantos e folga além das 15 posições.
 const BASE_HEIGHT := 0.08
-const BASE_RADIUS := 0.2
-const BASE_MARGIN := 0.12
+const BASE_RADIUS := 0.2 * MONEY_SCALE
+const BASE_MARGIN := 0.12 * MONEY_SCALE
 ## A câmera olha o chão a 45°: o eixo Z aparece encurtado por sin(45°), então
 ## o maço deitado é esticado por 1/sin(45°) para manter a proporção da arte.
 const VIEW_STRETCH := 1.0 / sin(deg_to_rad(45.0))

@@ -31,14 +31,21 @@ const SEED_HAND_OFFSET := Vector3(0.45, 1.15, -0.25)
 const PLANTING_PLOT_COUNT := 3
 const PLANTING_COLUMNS := 3
 const PLANTING_ROWS := 1
-const PLANTING_PLOT_WIDTH := 3.8
+## Área de plantio 1,7x a anterior (largura 3,8 m por tira): cada lado cresce
+## por sqrt(1,7), mantendo a proporção da arte das tiras.
+const PLANTING_AREA_SCALE := 1.7
+const PLANTING_LINEAR_SCALE := sqrt(PLANTING_AREA_SCALE)
+const PLANTING_PLOT_WIDTH := 3.8 * PLANTING_LINEAR_SCALE
+## Sobreposição entre tiras vizinhas para esconder a margem transparente do PNG.
+const PLANTING_PLOT_OVERLAP := 0.35 * PLANTING_LINEAR_SCALE
 # A câmera olha o chão a 45° (camera_height == camera_distance), o que encurta
 # o eixo Z na tela por sin(45°). O comprimento é compensado por 1/sin(45°) para
 # que a tira apareça na proporção da arte, sem aspecto "comprimido".
 const PLANTING_VIEW_PITCH_DEGREES := 45.0
 const PLANTING_LENGTH_STRETCH := 1.0 / sin(deg_to_rad(PLANTING_VIEW_PITCH_DEGREES))
 # Borda do canteiro mais próxima da casa/fazendeiro; o canteiro cresce para +Z.
-const PLANTING_NEAR_EDGE_Z := 3.3
+# Recuada de 3,3 para 2,3 m para a área 1,7x caber antes do balcão de vendas.
+const PLANTING_NEAR_EDGE_Z := 2.3
 # Os módulos são contíguos nos dois eixos: uma área de cultivo é um agrupamento sem vãos.
 # Sobreposição controlada para ocultar qualquer margem transparente residual do PNG.
 var planting_plot_size: Vector2
@@ -64,7 +71,7 @@ var money_label: Label
 func _ready() -> void:
     var texture_size := SOIL_TEXTURE.get_size()
     planting_plot_size = Vector2(PLANTING_PLOT_WIDTH, PLANTING_PLOT_WIDTH * texture_size.y / texture_size.x * PLANTING_LENGTH_STRETCH)
-    planting_plot_spacing = Vector2(PLANTING_PLOT_WIDTH - 0.35, planting_plot_size.y)
+    planting_plot_spacing = Vector2(PLANTING_PLOT_WIDTH - PLANTING_PLOT_OVERLAP, planting_plot_size.y)
     planting_visible_width_ratio = clampf(float(SOIL_TEXTURE.get_image().get_used_rect().size.x) / texture_size.x, 0.5, 1.0)
     _build_environment()
     _build_ground()
@@ -103,11 +110,18 @@ func _build_sales_counter() -> void:
     add_child(money_stack)
     var counter_half := sales_counter.get_half_extents()
     var base_half := Vector2(MoneyStack.get_base_size().x, MoneyStack.get_base_size().z) * 0.5
-    money_stack.position = sales_counter.position + Vector3(counter_half.x + 0.35 + base_half.x, 0.0, -0.4 - base_half.y)
+    # Ao lado do balcão e fora da plantação (que ficou mais larga).
+    var field_half_width := get_planting_area_half_width()
+    var base_left := maxf(counter_half.x, field_half_width) + 0.35
+    money_stack.position = sales_counter.position + Vector3(base_left + base_half.x, 0.0, -0.4 - base_half.y)
     sales_controller = SALES_CONTROLLER_SCRIPT.new() as SalesController
     sales_controller.name = "SalesController"
     add_child(sales_controller)
     sales_controller.setup(customer_queue, sales_counter, money_stack)
+
+## Meia largura (X) de todas as tiras juntas, centradas em x = 0.
+func get_planting_area_half_width() -> float:
+    return ((PLANTING_PLOT_COUNT - 1) * planting_plot_spacing.x + PLANTING_PLOT_WIDTH) * 0.5
 
 func _build_planting_grid() -> void:
     planting_grid = PLANTING_GRID_SCRIPT.new()
