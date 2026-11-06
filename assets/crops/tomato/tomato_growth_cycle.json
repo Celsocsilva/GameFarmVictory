@@ -11,27 +11,22 @@
     {
       "id": "SPROUT",
       "label": "Broto",
-      "asset": "res://assets/crops/tomato/stages/01_sprout.png"
-    },
-    {
-      "id": "GROWING",
-      "label": "Crescimento vegetativo",
-      "asset": "res://assets/crops/tomato/stages/02_vegetative_growth.png"
+      "asset": "res://assets/crops/tomato/stages/tomato_stage_01_sprout.png"
     },
     {
       "id": "FLOWERING",
-      "label": "Floração e frutificação",
-      "asset": "res://assets/crops/tomato/stages/03_flowering_fruit_set.png"
+      "label": "Floração",
+      "asset": "res://assets/crops/tomato/stages/tomato_stage_02_flowering.png"
     },
     {
       "id": "GREEN_FRUIT",
-      "label": "Fruto verde",
-      "asset": "res://assets/crops/tomato/stages/04_green_fruit.png"
+      "label": "Dois frutos verdes",
+      "asset": "res://assets/crops/tomato/stages/tomato_stage_03_green_2_fruits.png"
     },
     {
       "id": "READY_TO_HARVEST",
-      "label": "Pronto para colheita",
-      "asset": "res://assets/crops/tomato/stages/05_ready_to_harvest.png"
+      "label": "Três frutos maduros",
+      "asset": "res://assets/crops/tomato/stages/tomato_stage_04_ripe_3_fruits.png"
     }
   ]
 }

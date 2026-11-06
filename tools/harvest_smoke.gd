@@ -23,7 +23,9 @@ func _check(condition: bool, message: String) -> void:
 func _run() -> void:
     _test_inventory_math()
     await _test_backpack_states()
+    await _test_grid_spacing()
     await _test_front_middle_back_and_moving_target()
+    await _test_replant_gate()
     await _test_walk_harvest_ten_plants()
     await _test_capacity_full_keeps_fruit()
     await _test_cancel_by_leaving_field()
@@ -87,6 +89,75 @@ func _count_state(state: String) -> int:
 
 # --- Testes ----------------------------------------------------------------
 
+## Mede o menor intervalo entre centros, inclusive nas bordas das tiras.
+func _test_grid_spacing() -> void:
+    await _load_world(func(_c: Dictionary) -> bool: return false)
+    var grid := world.planting_grid
+    var cells := grid.cells.values()
+    _check(cells.size() == FarmWorld.PLANTING_PLOT_COUNT * grid.columns * grid.rows_per_module,
+        "Espaçamento: quantidade de células")
+    var nearest := INF
+    for i in cells.size():
+        var a: Vector3 = cells[i]["position"]
+        for j in range(i + 1, cells.size()):
+            var b: Vector3 = cells[j]["position"]
+            nearest = minf(nearest, Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z)))
+    var gap := world.planting_plot_spacing.x - FarmWorld.PLANTING_PLOT_WIDTH * (1.0 - 1.0 / grid.columns)
+    _check(nearest > 0.01 and is_equal_approx(nearest, gap),
+        "Espaçamento real esperado %.3f m, obtido %.3f m" % [gap, nearest])
+    _check(is_equal_approx(grid.get_cell_spacing(), nearest),
+        "get_cell_spacing deve medir os centros reais: %.3f m, obtido %.3f m" % [nearest, grid.get_cell_spacing()])
+    _check(is_equal_approx(world.harvest_controller.get_harvest_radius(),
+        grid.get_cell_spacing() * world.harvest_controller.radius_multiplier),
+        "Raio da colheita segue o multiplicador")
+    print("GRID_SPACING measured=", snappedf(nearest, 0.001),
+        " reported=", snappedf(grid.get_cell_spacing(), 0.001))
+
+## O reset só ocorre após colher a última célula; a planta é removida.
+func _test_replant_gate() -> void:
+    var first_id := "PlantingPlot_02_r03_c01"
+    var last_id := "PlantingPlot_03_r04_c01"
+    await _load_world(func(c: Dictionary) -> bool: return c["id"] in [first_id, last_id])
+    var grid := world.planting_grid
+    var controller := world.harvest_controller
+    var first_crop := world.crops[first_id] as CropPlant
+    var last_crop := world.crops[last_id] as CropPlant
+    for cell in grid.cells.values():
+        if cell["id"] not in [first_id, last_id]:
+            cell["state"] = PlantingGrid.STATE_HARVESTED
+            cell["remaining_yield"] = 0
+    _check(not grid.reset_if_fully_harvested(), "Reset bloqueado com duas plantas maduras")
+    world.farmer.global_position = grid.get_cell_world_position(first_id)
+    _check(controller.request_collect(first_id), "Primeira coleta iniciada")
+    _check(not grid.plant_cell(first_id), "Plantio bloqueado durante HARVESTING")
+    await _wait_jobs()
+    await process_frame
+    _check(controller.get_active_job_count() == 0, "Primeira coleta terminou")
+    _check(grid.cells[first_id]["state"] == PlantingGrid.STATE_HARVESTED,
+        "Primeira célula permanece HARVESTED")
+    _check(not grid.plant_cell(first_id), "Plantio bloqueado enquanto sobra planta madura")
+    _check(not world.crops.has(first_id) and not is_instance_valid(first_crop),
+        "Primeira planta liberada e removida do mapa")
+    _check(world.crops.has(last_id), "Última planta ainda existe")
+    _check(not grid.reset_if_fully_harvested(), "Reset manual bloqueado antes da última coleta")
+    world.farmer.global_position = grid.get_cell_world_position(last_id)
+    _check(controller.request_collect(last_id), "Última coleta iniciada")
+    await _wait_jobs()
+    await process_frame
+    _check(controller.get_active_job_count() == 0, "Última coleta terminou")
+    _check(not world.crops.has(last_id) and not is_instance_valid(last_crop),
+        "Última planta liberada e removida do mapa")
+    _check(grid.get_planting_progress()["remaining"] == grid.cells.size(),
+        "Grade inteira EMPTY após última coleta")
+    _check(not grid.reset_if_fully_harvested(), "Reset repetido bloqueado")
+    _check(grid.plant_cell(first_id), "Replantio permitido após reset completo")
+    _check(grid.cells[first_id]["state"] == "SEEDED", "Nova safra em SEEDED")
+    _check(world.harvest_inventory.get_total() == 2 * controller.yield_per_crop,
+        "Duas plantas colhidas uma vez")
+    _check_conservation("replantio")
+    print("REPLANT_GATE carried=", world.harvest_inventory.get_total(),
+        " remaining=", grid.get_planting_progress()["remaining"])
+
 func _test_inventory_math() -> void:
     var inventory := HarvestInventory.new()
     _check(inventory.get_capacity() == 56, "Capacidade 7 x 8 = 56")
@@ -144,6 +215,7 @@ func _test_front_middle_back_and_moving_target() -> void:
     for row in [0, 3, 6]:
         var cell := _cell_at(2, row, 1)
         var cell_pos: Vector3 = cell["position"]
+        var crop := world.crops[cell["id"]] as CropPlant
         world.farmer.global_position = cell_pos + Vector3(0.0, 0.0, -1.0)
         await process_frame
         _check(controller.request_collect(cell["id"]), "Fileira %d: coleta iniciada" % row)
@@ -171,8 +243,9 @@ func _test_front_middle_back_and_moving_target() -> void:
             world.farmer.rotation.y = atan2(-direction.x, -direction.z)
         _check(fx.get_lowest_world_y() >= fx.min_world_y, "Fileira %d: fruto nunca abaixo do terreno" % row)
         _check(cell["state"] == PlantingGrid.STATE_HARVESTED and int(cell["remaining_yield"]) == 0, "Fileira %d colhida por completo" % row)
-        _check((world.crops[cell["id"]] as CropPlant).is_harvested, "Fileira %d: planta mostra o pé colhido" % row)
-        _check((world.crops[cell["id"]] as CropPlant).global_position.distance_to(cell_pos) < 0.001, "Planta continua ancorada na célula")
+        _check(not world.crops.has(cell["id"]), "Fileira %d: planta removida do mapa" % row)
+        await process_frame
+        _check(not is_instance_valid(crop), "Fileira %d: nó da planta liberado" % row)
     var worst := 0.0
     for e in arrival_errors:
         worst = maxf(worst, e)

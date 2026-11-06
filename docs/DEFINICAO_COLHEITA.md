@@ -6,8 +6,9 @@
 3. A planta fica em estado `HARVESTING`, sem permitir uma segunda coleta simultânea.
 4. Um número limitado de tomates visuais se desprende da planta e percorre um arco de atração até `HarvestIntakeMarker` na mochila, acompanhando a posição atual do personagem enquanto ele caminha.
 5. Ao completar a animação, confirmar as unidades no inventário, atualizar visual da pilha de caixas e consumir somente a quantidade reservada de frutos na célula.
-6. A planta passa para `HARVESTED` ao esgotar seus frutos; a lógica de novo plantio é de outro sistema. Se a capacidade lotar no meio da colheita, os frutos restantes continuam disponíveis.
-7. Com sete caixas completas, suspender novas coletas e orientar o jogador a descarregar na bancada (integração futura).
+6. A planta desaparece quando a célula passa para `HARVESTED`; se a mochila lotar, os frutos restantes continuam disponíveis na planta.
+7. Com sete caixas completas, suspender novas coletas e orientar o jogador a levar a carga ao depósito 3D no rodapé do mapa (+Z). A aproximação descarrega os tomates, libera a capacidade da mochila e acrescenta caixas à pilha 3D.
+8. A célula colhida não aceita nova semente durante a safra. Somente depois de todas as células ficarem `HARVESTED` e sem frutos, a grade volta a `EMPTY` para a próxima safra.
 
 ## Parâmetros iniciais — calibrar com câmera real
 | Campo | Valor de teste | Descrição |
@@ -24,10 +25,10 @@
 
 ## Controle de capacidade
 - `count == 0`: nenhuma caixa na mochila (ou suporte vazio, caso já exista).
-- `count == 1..7`: uma caixa parcialmente preenchida.
+- `count == 1..7`: uma caixa parcialmente preenchida, com até sete mini tomates visíveis.
 - `count == 8`: uma caixa completa.
 - `count == 9`: primeira caixa completa + segunda parcial.
-- `count == 56`: sete caixas completas, sem permitir novas reservas.
+- `count == 56`: sete caixas completas, sem permitir novas reservas até descarregar no depósito.
 - Visual: montar pilha repetindo `crate_empty.png` e `crate_full.png`; não usar uma imagem de sete caixas como implementação principal.
 - Para mostrar preenchimento parcial, sobrepor indicadores de tomates ou pequenos sprites dentro da caixa vazia; não apresentar caixa cheia quando a carga ainda não foi completada.
 
@@ -46,6 +47,7 @@
 Se houver coleta parcial, retorna a `RIPE` após subtrair quantidade confirmada.
 Reservar capacidade antes de criar os sprites de voo. Confirmar na chegada; desfazer a reserva em cancelamento, troca de cena ou erro. Não duplicar unidades ao interromper o VFX.
 Para retomada, serializar inventário, quantidade de frutas restante e estado por célula.
+O depósito expõe `get_stored_total()` e `set_stored_total()` para integração futura com o save; o protótipo atual mantém o total durante a sessão.
 
 ## Contratos sugeridos
 ```
@@ -66,8 +68,8 @@ Adaptar à arquitetura existente após inspecionar o projeto; não duplicar gest
 - Confirmar visualmente os estados de mochila com 0, 1, 8, 9, 55 e 56 unidades.
 - Ao atingir 56 unidades, novos frutos permanecem nas plantas, não são perdidos.
 - Caso o jogador saia do campo ou a animação seja cancelada, reservas pendentes são revertidas sem gerar duplicações.
-- Não modificar câmera, textura do terreno, mapeamento das células ou movimento do fazendeiro para esconder defeitos.
-- Capturas e gravação curta da cena em execução mostram coleta de planta da frente e do fundo e pilha chegando a sete caixas.
+- Preservar câmera e movimento do fazendeiro. Mudanças no terreno e no mapeamento das células precisam manter o alinhamento real e ser verificadas por captura e teste de espaçamento.
+- Capturas e gravação curta da cena em execução mostram coleta de planta da frente e do fundo e pilha chegando a sete caixas. O teste de integração também verifica o depósito e a reabertura da grade apenas após a colheita integral.
 
 ## Orientações para os assets
 PNG RGBA já recortados na pasta `assets/`:
@@ -78,4 +80,4 @@ PNG RGBA já recortados na pasta `assets/`:
 - `harvest_pickup_spark.png` — brilho de chegada opcional.
 - `crate_stack_7_reference.png` — somente referência visual da capacidade máxima; **não** usar como pilha dinâmica.
 
-Estes sprites são artes 2D transparentes. O posicionamento, a profundidade, a animação, o inventário e a validação de runtime ainda precisam ser implementados no Godot. É obrigatório conferir a escala final na câmera do projeto.
+Estes sprites são artes 2D transparentes. A mochila e a coleta já usam os sprites no protótipo Godot; as caixas da mochila têm largura de 2,0 unidades do mundo (o dobro da largura anterior). A pilha usa duas colunas e distância vertical de 1,2 unidade entre fileiras, para manter sete caixas visíveis na câmera. O depósito monta caixas e tomates com malhas 3D. A validação visual deve sempre usar a câmera do jogo.

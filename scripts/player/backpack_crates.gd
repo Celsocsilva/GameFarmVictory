@@ -27,10 +27,10 @@ const PARTIAL_SLOTS := [
 @export_range(1, 7, 1) var max_crates: int = 7
 @export_range(1, 64, 1) var units_per_crate: int = 8
 ## Largura de cada caixa em unidades do mundo.
-@export_range(0.3, 1.5, 0.01) var crate_width: float = 1.0
-## Subida no eixo Y do mundo entre caixas empilhadas.
-@export_range(0.1, 1.0, 0.01) var crate_step: float = 0.5
-@export_range(0.05, 0.4, 0.01) var mini_tomato_size: float = 0.22
+@export_range(0.3, 3.0, 0.01) var crate_width: float = 2.0
+## Subida no eixo Y do mundo entre fileiras de caixas.
+@export_range(0.1, 2.0, 0.01) var crate_step: float = 1.2
+@export_range(0.05, 0.8, 0.01) var mini_tomato_size: float = 0.44
 
 var stack_root: Node3D
 var intake_marker: Marker3D
@@ -109,18 +109,28 @@ func _refresh(animate: bool) -> void:
             _pop(sprite, 0.22)
     # Destino dos frutos: logo acima da caixa que está recebendo tomates.
     var receiving := mini(crate_count, max_crates - 1) if _amount % units_per_crate == 0 else crate_count - 1
-    intake_marker.position = Vector3(0.0, maxi(receiving, 0) * crate_step + crate_width * 0.55, 0.0)
+    var receiving_slot := _slot_position(maxi(receiving, 0), crate_count)
+    intake_marker.position = receiving_slot + Vector3(0.0, crate_width * 0.55, 0.0)
     _orient_crates()
 
 func _orient_crates() -> void:
     if _camera == null or not is_instance_valid(_camera):
         _camera = get_viewport().get_camera_3d() if is_inside_tree() else null
     var basis := _crate_basis()
+    var visible_count := get_visible_crate_count()
     for index in _crates.size():
         var crate := _crates[index]
-        # Pilha vertical no mundo, ancorada nas costas. As caixas mais altas ficam
-        # mais perto da câmera e cobrem o interior da caixa de baixo.
-        crate.global_transform = Transform3D(basis, stack_root.global_position + Vector3.UP * index * crate_step)
+        # Duas colunas mantêm as sete imagens ampliadas dentro da câmera.
+        # A última caixa de uma fileira incompleta fica centralizada.
+        crate.global_transform = Transform3D(basis, stack_root.global_position + _slot_position(index, visible_count))
+
+func _slot_position(index: int, visible_count: int) -> Vector3:
+    var row := index / 2
+    var column := index % 2
+    var x := (float(column) - 0.5) * crate_width * 0.9
+    if index == visible_count - 1 and visible_count % 2 == 1:
+        x = 0.0
+    return Vector3(x, row * crate_step, 0.0)
 
 ## Plano vertical virado para a câmera (billboard só no eixo Y), para não cortar o
 ## corpo do fazendeiro. A altura é compensada pela inclinação da câmera, como

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cydmky8o7vjms"
-path="res://.godot/imported/05_ready_to_harvest.png-5db5e39e8dff8abedd157386be831401.ctex"
+uid="uid://da3ojsh8tpd2p"
+path="res://.godot/imported/tomato_stage_01_sprout.png-56e4bf3ed16122311edc70b03c599e9c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/crops/tomato/stages/05_ready_to_harvest.png"
-dest_files=["res://.godot/imported/05_ready_to_harvest.png-5db5e39e8dff8abedd157386be831401.ctex"]
+source_file="res://assets/crops/tomato/stages/tomato_stage_01_sprout.png"
+dest_files=["res://.godot/imported/tomato_stage_01_sprout.png-56e4bf3ed16122311edc70b03c599e9c.ctex"]
 
 [params]
 
