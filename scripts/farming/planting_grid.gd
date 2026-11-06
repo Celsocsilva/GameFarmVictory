@@ -13,7 +13,7 @@ const STATE_HARVESTED := "HARVESTED"
 
 @export var planting_radius: float = 0.95
 ## Distância à frente do fazendeiro onde o punhado cai (arremesso, não plantio no pé).
-@export_range(0.0, 4.0, 0.1) var throw_reach: float = 3.0
+@export_range(0.0, 8.0, 0.1) var throw_reach: float = 5.1
 @export var columns: int = 3
 @export var rows_per_module: int = 7
 @export var row_spacing: float = 2.1
