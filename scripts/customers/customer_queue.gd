@@ -61,6 +61,9 @@ func _ready() -> void:
 ## Alinha a fila atrás da bancada; edge_z é a borda +Z do terreno (mundo).
 func setup(depot: Node3D, edge_z: float) -> void:
     global_position = Vector3(depot.global_position.x, 0.0, depot.global_position.z)
+    # Primeiro lugar sempre logo atrás do rebordo do balcão, qualquer que seja o fundo dele.
+    if depot.has_method("get_half_extents"):
+        first_slot_offset = maxf(first_slot_offset, (depot.get_half_extents() as Vector2).y + 0.85)
     _spawn_local_z = minf(get_slot_position(0, SLOTS_PER_LANE - 1).z + 1.8, edge_z - spawn_edge_margin - global_position.z)
 
 ## Reinicia o sorteio com semente fixa (testes reprodutíveis).

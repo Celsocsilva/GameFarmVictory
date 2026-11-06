@@ -34,7 +34,8 @@ func _run() -> void:
     if counter.name != "SalesCounter" or world.get_node_or_null("TomatoDepot") != null:
         return _fail("nome do balcão")
     var half := counter.get_half_extents()
-    if not is_equal_approx(half.x * 2.0, 8.5):
+    # 8,5 m (largura dobrada) x 1,3 = 11,05 m; fundo 2,25 x 1,3 = 2,925 m.
+    if not is_equal_approx(half.x * 2.0, 8.5 * 1.3) or not is_equal_approx(half.y * 2.0, 2.25 * 1.3) or not is_equal_approx(SalesCounter.CRATE_WIDTH, 1.3 * 1.3):
         return _fail("largura %.2f" % (half.x * 2.0))
     print("COUNTER width=%.2f depth=%.2f z=%.2f" % [half.x * 2.0, half.y * 2.0, counter.global_position.z])
 
@@ -245,5 +246,5 @@ func _run() -> void:
         t2 += STEP
     if sales.sales_log.size() != sales_before + 1 or counter.get_stored_total() != 0 or money.get_balance() != 33:
         return _fail("venda após reabastecer")
-    print("SALES_SMOKE_OK width=8.50 blocked=5 base=3x5 sales=%d money=%d" % [sales.sales_log.size(), money.get_balance()])
+    print("SALES_SMOKE_OK width=11.05 blocked=5 base=3x5 sales=%d money=%d" % [sales.sales_log.size(), money.get_balance()])
     quit()

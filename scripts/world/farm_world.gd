@@ -295,8 +295,13 @@ func _build_planting_area() -> void:
         var visual := MeshInstance3D.new()
         visual.name = "PlowedSoil"
         var quad := QuadMesh.new()
+        # O quad mostra o PNG inteiro com a proporção da arte compensada pela
+        # câmera (1/sin 45°) e o comprimento da tira. Antes a largura era
+        # alargada pela margem transparente sem alongar o comprimento, e o solo
+        # aparecia 4,9% achatado na tela (auditoria FV-SALES-003).
+        var soil_aspect := float(SOIL_TEXTURE.get_height()) / float(SOIL_TEXTURE.get_width())
         quad.size = Vector2(
-            PLANTING_PLOT_WIDTH / planting_visible_width_ratio,
+            planting_plot_size.y / (soil_aspect * PLANTING_LENGTH_STRETCH),
             planting_plot_size.y
         )
         visual.mesh = quad
