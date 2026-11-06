@@ -1,0 +1,21 @@
+{
+  "project": "TerraBela Farm",
+  "feature": "FV-HARVEST-001",
+  "format": "PNG RGBA",
+  "assets": [
+    {"path":"assets/tomato_ripe.png","usage":"pickup flight"},
+    {"path":"assets/crate_empty.png","usage":"partial crate"},
+    {"path":"assets/crate_full.png","usage":"completed crate"},
+    {"path":"assets/harvest_suction_trail.png","usage":"optional suction streak"},
+    {"path":"assets/harvest_pickup_spark.png","usage":"optional pickup feedback"},
+    {"path":"assets/crate_stack_7_reference.png","usage":"reference visual only"}
+  ],
+  "defaults": {
+    "max_crates": 7,
+    "tomatoes_per_crate": 8,
+    "max_capacity": 56,
+    "yield_per_crop": 6,
+    "pickup_duration_sec": [0.35,0.60],
+    "harvest_radius_cell_spacing_multiplier": 1.25
+  }
+}
