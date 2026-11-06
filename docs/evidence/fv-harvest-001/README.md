@@ -1,5 +1,7 @@
 # FV-HARVEST-001 — colheita automática de tomates com sucção e mochila de 7 caixas
 
+Este registro documenta a implementação original. Para as regras atuais de remoção da planta, replantio e depósito 3D, consulte [FV-FARM-006](../fv-farm-006.md).
+
 Godot 4.7.2 (Vulkan, renderizador Mobile), cena `farm_world.tscn`, câmera real do jogo, 1280×720.
 Definição: [`docs/DEFINICAO_COLHEITA.md`](../../DEFINICAO_COLHEITA.md). Assets originais e prompt: `docs/references/fv-harvest-001/`.
 

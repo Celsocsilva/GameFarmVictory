@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://di6tqg271p741"
-path="res://.godot/imported/04_green_fruit.png-ff5a974a6e3c9f721657672f7b373a20.ctex"
+uid="uid://pnhlhwlbx0av"
+path="res://.godot/imported/tomato_stage_03_green_2_fruits.png-3227c649e547689667251b410ce26e0e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/crops/tomato/stages/04_green_fruit.png"
-dest_files=["res://.godot/imported/04_green_fruit.png-ff5a974a6e3c9f721657672f7b373a20.ctex"]
+source_file="res://assets/crops/tomato/stages/tomato_stage_03_green_2_fruits.png"
+dest_files=["res://.godot/imported/tomato_stage_03_green_2_fruits.png-3227c649e547689667251b410ce26e0e.ctex"]
 
 [params]
 

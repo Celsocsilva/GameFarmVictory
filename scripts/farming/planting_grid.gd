@@ -20,6 +20,7 @@ const STATE_HARVESTED := "HARVESTED"
 @export var test_mode: bool = true
 
 var cells: Dictionary = {}
+var _cell_spacing := 1.0
 var _last_farmer_position := Vector3.ZERO
 var _has_previous_position := false
 var _plant_accumulator := 0.0
@@ -56,6 +57,17 @@ func configure(modules: Array[Area3D]) -> void:
                     "planted_at": 0.0,
                     "remaining_yield": 0
                 }
+    _cell_spacing = INF
+    var all_cells := cells.values()
+    for i in all_cells.size():
+        var a: Vector3 = all_cells[i]["position"]
+        for j in range(i + 1, all_cells.size()):
+            var b: Vector3 = all_cells[j]["position"]
+            var distance := Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
+            if distance > 0.001:
+                _cell_spacing = minf(_cell_spacing, distance)
+    if _cell_spacing == INF:
+        _cell_spacing = 1.0
 
 func process_farmer_position(world_position: Vector3, delta: float) -> void:
     if not _has_previous_position:
@@ -125,14 +137,25 @@ func plant_cell(cell_id: String) -> bool:
     cell_planted.emit(cell_id)
     return true
 
+## Reabre a plantação somente depois de colher todas as células da safra.
+func reset_if_fully_harvested() -> bool:
+    if cells.is_empty():
+        return false
+    for cell in cells.values():
+        if cell["state"] != STATE_HARVESTED or int(cell["remaining_yield"]) != 0:
+            return false
+    for cell in cells.values():
+        cell["state"] = "EMPTY"
+        cell["planted_at"] = 0.0
+        cell["remaining_yield"] = 0
+        cell_state_changed.emit(cell["id"], "EMPTY")
+    return true
+
 # --- Colheita (FV-HARVEST-001) -------------------------------------------
 
 ## Menor distância entre centros de células vizinhas (base do raio de colheita).
 func get_cell_spacing() -> float:
-    var spacing := INF
-    for cell in cells.values():
-        spacing = minf(spacing, minf(cell["cell_width"], cell["cell_length"]))
-    return spacing if spacing < INF else 1.0
+    return _cell_spacing
 
 ## A planta amadureceu: passa a RIPE com `units` frutos colhíveis.
 func mark_ripe(cell_id: String, units: int) -> void:

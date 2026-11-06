@@ -18,6 +18,8 @@ const SOIL_TEXTURE := preload("res://assets/textures/soil/plowed_soil_three_furr
 const HARVEST_INVENTORY_SCRIPT := preload("res://scripts/farming/harvest_inventory.gd")
 const HARVEST_CONTROLLER_SCRIPT := preload("res://scripts/farming/harvest_controller.gd")
 const BACKPACK_CRATES_SCRIPT := preload("res://scripts/player/backpack_crates.gd")
+const TOMATO_DEPOT_SCRIPT := preload("res://scripts/farming/tomato_depot.gd")
+const CUSTOMER_QUEUE_SCRIPT := preload("res://scripts/customers/customer_queue.gd")
 
 ## Mochila nas costas do fazendeiro (a frente do fazendeiro é -Z local).
 const BACKPACK_OFFSET := Vector3(0.0, 1.1, 0.62)
@@ -28,25 +30,18 @@ const PLANTING_PLOT_COUNT := 3
 const PLANTING_COLUMNS := 3
 const PLANTING_ROWS := 1
 const PLANTING_PLOT_WIDTH := 3.8
-# Proporção do PNG aprovado: 466 x 912. A altura é derivada da largura para
-# preservar o comprimento original, sem esticar ou comprimir a textura.
-const PLANTING_TEXTURE_ASPECT := 912.0 / 466.0
-# Conteúdo opaco ocupa 443 dos 466 px de largura (margem transparente lateral).
-const PLANTING_VISIBLE_WIDTH_RATIO := 443.0 / 466.0
 # A câmera olha o chão a 45° (camera_height == camera_distance), o que encurta
 # o eixo Z na tela por sin(45°). O comprimento é compensado por 1/sin(45°) para
 # que a tira apareça na proporção da arte, sem aspecto "comprimido".
 const PLANTING_VIEW_PITCH_DEGREES := 45.0
 const PLANTING_LENGTH_STRETCH := 1.0 / sin(deg_to_rad(PLANTING_VIEW_PITCH_DEGREES))
-const PLANTING_PLOT_SIZE := Vector2(
-    PLANTING_PLOT_WIDTH,
-    PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT * PLANTING_LENGTH_STRETCH
-)
 # Borda do canteiro mais próxima da casa/fazendeiro; o canteiro cresce para +Z.
 const PLANTING_NEAR_EDGE_Z := 3.3
 # Os módulos são contíguos nos dois eixos: uma área de cultivo é um agrupamento sem vãos.
 # Sobreposição controlada para ocultar qualquer margem transparente residual do PNG.
-const PLANTING_PLOT_SPACING := Vector2(PLANTING_PLOT_WIDTH - 0.35, PLANTING_PLOT_SIZE.y)
+var planting_plot_size: Vector2
+var planting_plot_spacing: Vector2
+var planting_visible_width_ratio: float
 
 @onready var farmer: FarmerController = $Farmer
 var camera: Camera3D
@@ -55,11 +50,17 @@ var planting_grid: PlantingGrid
 var harvest_inventory: HarvestInventory
 var harvest_controller: HarvestController
 var backpack: BackpackCrates
+var tomato_depot: TomatoDepot
+var customer_queue: CustomerQueue
 ## cell_id -> CropPlant, para a colheita localizar a planta de cada célula.
 var crops: Dictionary = {}
 var harvest_label: Label
 
 func _ready() -> void:
+    var texture_size := SOIL_TEXTURE.get_size()
+    planting_plot_size = Vector2(PLANTING_PLOT_WIDTH, PLANTING_PLOT_WIDTH * texture_size.y / texture_size.x * PLANTING_LENGTH_STRETCH)
+    planting_plot_spacing = Vector2(PLANTING_PLOT_WIDTH - 0.35, planting_plot_size.y)
+    planting_visible_width_ratio = clampf(float(SOIL_TEXTURE.get_image().get_used_rect().size.x) / texture_size.x, 0.5, 1.0)
     _build_environment()
     _build_ground()
     _build_planting_area()
@@ -67,6 +68,7 @@ func _ready() -> void:
     _build_obstacles()
     _build_camera()
     _build_harvest()
+    _build_tomato_depot()
     _build_hud()
     _prewarm_seed_throw()
     camera_focus = farmer.global_position
@@ -76,6 +78,19 @@ func _process(delta: float) -> void:
         _update_camera_focus(delta)
     if planting_grid and farmer:
         planting_grid.process_farmer_position(farmer.global_position, delta)
+    if tomato_depot and farmer:
+        tomato_depot.process_farmer_position(farmer.global_position)
+
+func _build_tomato_depot() -> void:
+    tomato_depot = TOMATO_DEPOT_SCRIPT.new() as TomatoDepot
+    tomato_depot.name = "TomatoDepot"
+    add_child(tomato_depot)
+    tomato_depot.place_at_map_foot(farm_size)
+    tomato_depot.setup(harvest_inventory)
+    customer_queue = CUSTOMER_QUEUE_SCRIPT.new() as CustomerQueue
+    customer_queue.name = "CustomerQueue"
+    add_child(customer_queue)
+    customer_queue.setup(tomato_depot, farm_size * 0.5)
 
 func _build_planting_grid() -> void:
     planting_grid = PLANTING_GRID_SCRIPT.new()
@@ -149,14 +164,16 @@ func _build_harvest() -> void:
 
 func _on_cell_state_changed(cell_id: String, state: String) -> void:
     if state == PlantingGrid.STATE_HARVESTED and crops.has(cell_id):
-        (crops[cell_id] as CropPlant).set_harvested()
+        (crops[cell_id] as CropPlant).queue_free()
+        crops.erase(cell_id)
+        planting_grid.reset_if_fully_harvested()
 
 func _update_harvest_label(_item: StringName = &"", _amount: int = 0) -> void:
     if harvest_label == null:
         return
     var total := harvest_inventory.get_total()
     if harvest_inventory.is_full():
-        harvest_label.text = "Mochila cheia (%d/%d)! Leve as caixas até a bancada para descarregar." % [total, harvest_inventory.get_capacity()]
+        harvest_label.text = "Mochila cheia (%d/%d)! Leve as caixas ao depósito no rodapé do mapa." % [total, harvest_inventory.get_capacity()]
         harvest_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35))
     else:
         harvest_label.text = "Tomates: %d/%d   Caixas: %d/%d" % [total, harvest_inventory.get_capacity(), harvest_inventory.get_crate_count(), harvest_inventory.max_crates]
@@ -223,9 +240,9 @@ func _build_planting_area() -> void:
         var centered_column := column - (PLANTING_COLUMNS - 1) * 0.5
         var centered_row := row - (PLANTING_ROWS - 1) * 0.5
         plot.position = Vector3(
-            centered_column * PLANTING_PLOT_SPACING.x,
+            centered_column * planting_plot_spacing.x,
             0.025,
-            PLANTING_NEAR_EDGE_Z + PLANTING_PLOT_SIZE.y * 0.5 + centered_row * PLANTING_PLOT_SPACING.y
+            PLANTING_NEAR_EDGE_Z + planting_plot_size.y * 0.5 + centered_row * planting_plot_spacing.y
         )
         plot.set_meta("plot_index", index)
         plot.set_meta("crop", "tomato")
@@ -235,8 +252,8 @@ func _build_planting_area() -> void:
         visual.name = "PlowedSoil"
         var quad := QuadMesh.new()
         quad.size = Vector2(
-            PLANTING_PLOT_WIDTH / PLANTING_VISIBLE_WIDTH_RATIO,
-            PLANTING_PLOT_SIZE.y
+            PLANTING_PLOT_WIDTH / planting_visible_width_ratio,
+            planting_plot_size.y
         )
         visual.mesh = quad
         visual.material_override = soil_material
@@ -246,7 +263,7 @@ func _build_planting_area() -> void:
         var collision := CollisionShape3D.new()
         collision.name = "CollisionShape3D"
         var shape := BoxShape3D.new()
-        shape.size = Vector3(PLANTING_PLOT_SIZE.x, 0.1, PLANTING_PLOT_SIZE.y)
+        shape.size = Vector3(planting_plot_size.x, 0.1, planting_plot_size.y)
         collision.shape = shape
         collision.position.y = -0.025
         plot.add_child(collision)

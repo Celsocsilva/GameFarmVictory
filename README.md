@@ -25,7 +25,7 @@ O mapa deverá reservar espaço para expansão e futuras cadeias produtivas, inc
 - **Linguagem:** GDScript, com tipagem estática sempre que apropriado.
 - **Renderização:** Mobile como configuração inicial; Compatibility será avaliado por testes.
 - **Controles:** touchscreen, joystick virtual e interações por proximidade/toque.
-- **Cultivo:** `EMPTY → PLANTED → GROWING → READY → HARVESTED → EMPTY`.
+- **Cultivo no protótipo:** `EMPTY → SEEDED → RIPE → HARVESTING → HARVESTED`; a grade só retorna a `EMPTY` quando todas as células da safra estiverem colhidas. Os quatro estágios visuais intermediários são geridos por `CropPlant`.
 - **Tomates:** maturação inicial de referência em 25 segundos, configurável por recurso de cultura.
 - **Transporte:** limite inicial de sete caixas, separado do inventário lógico.
 - **Bancada:** estrutura física junto à cerca, sem toldo, tecido ou telhado.
@@ -37,6 +37,8 @@ O mapa deverá reservar espaço para expansão e futuras cadeias produtivas, inc
 ## Estado atual
 
 O projeto está na **Fase 1 — Fundação Godot Mobile**. A base executável da Godot, a configuração mobile, a documentação de arquitetura e a orquestração de agentes já estão organizadas. O vertical slice completo ainda precisa ser implementado e validado em dispositivo Android real.
+
+O protótipo Godot já inclui uma área contínua de tomate com três tiras de solo de três sulcos cada e sete posições por sulco (63 células), quatro estágios visuais da planta rasteira, semeadura, colheita durante a caminhada, mochila de até sete caixas e depósito 3D de tomates no rodapé do mapa. Cada planta totalmente colhida desaparece. O plantio da próxima safra só é liberado depois que todas as 63 células forem colhidas. As imagens das caixas da mochila foram ampliadas para o dobro da largura anterior e a pilha foi ajustada para permanecer visível na câmera. O depósito descarrega os tomates por proximidade; seu estoque ainda não está ligado ao sistema de save.
 
 O legado foi removido da árvore atual, mas permanece no histórico. Para recuperar um arquivo específico da versão anterior:
 
@@ -182,6 +184,17 @@ Para validar o projeto na Godot em modo headless, com a Godot disponível no `PA
 ```powershell
 godot --headless --path . --editor --quit
 ```
+
+Para verificar os sistemas atuais de cultivo, colheita e depósito:
+
+```powershell
+godot --headless --path . --import
+godot --headless --path . --script res://tools/farm_smoke.gd
+godot --headless --path . --script res://tools/harvest_smoke.gd
+godot --headless --path . --script res://tools/depot_smoke.gd
+```
+
+Os arquivos do ciclo do tomate estão descritos em [assets/crops/tomato/README.md](assets/crops/tomato/README.md). Os resultados desta implementação estão em [docs/evidence/fv-farm-006.md](docs/evidence/fv-farm-006.md).
 
 As exportações Android dependem dos templates de exportação, Android SDK e JDK compatíveis.
 
