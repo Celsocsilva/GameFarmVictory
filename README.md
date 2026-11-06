@@ -185,13 +185,14 @@ Para validar o projeto na Godot em modo headless, com a Godot disponível no `PA
 godot --headless --path . --editor --quit
 ```
 
-Para verificar os sistemas atuais de cultivo, colheita e depósito:
+Para verificar os sistemas atuais de cultivo, colheita, Balcão de vendas e clientes:
 
 ```powershell
 godot --headless --path . --import
 godot --headless --path . --script res://tools/farm_smoke.gd
 godot --headless --path . --script res://tools/harvest_smoke.gd
-godot --headless --path . --script res://tools/depot_smoke.gd
+godot --headless --path . --script res://tools/sales_counter_smoke.gd
+godot --headless --path . --script res://tools/customer_smoke.gd
 ```
 
 Os arquivos do ciclo do tomate estão descritos em [assets/crops/tomato/README.md](assets/crops/tomato/README.md). Os resultados desta implementação estão em [docs/evidence/fv-farm-006.md](docs/evidence/fv-farm-006.md).

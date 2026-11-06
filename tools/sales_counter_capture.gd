@@ -1,5 +1,5 @@
 extends SceneTree
-## Captura da câmera real com quatro caixas de tomates descarregadas no depósito.
+## Captura da câmera real com quatro caixas de tomates descarregadas no Balcão de vendas.
 
 func _initialize() -> void:
     call_deferred("_run")
@@ -21,13 +21,13 @@ func _run() -> void:
     else:
         world.harvest_inventory.set_amount(&"tomato", 32)
         assert(world.backpack.get_visible_crate_count() == 4)
-        world.tomato_depot.deposit_from(world.harvest_inventory)
-        assert(world.tomato_depot.get_stored_total() == 32)
-        assert(world.tomato_depot.get_displayed_crates() == 4)
+        world.sales_counter.deposit_from(world.harvest_inventory)
+        assert(world.sales_counter.get_stored_total() == 32)
+        assert(world.sales_counter.get_displayed_crates() == 4)
         assert(world.backpack.get_visible_crate_count() == 0)
-        world.farmer.global_position = world.tomato_depot.global_position + Vector3(0.0, 1.0, -4.0)
-        focus = world.tomato_depot.global_position + Vector3(0.0, 0.0, -1.5)
-        print("DEPOT_CAPTURE stored=", world.tomato_depot.get_stored_total(), " crates=", world.tomato_depot.get_displayed_crates())
+        world.farmer.global_position = world.sales_counter.global_position + Vector3(0.0, 1.0, -4.0)
+        focus = world.sales_counter.global_position + Vector3(0.0, 0.0, -1.5)
+        print("SALES_COUNTER_CAPTURE stored=", world.sales_counter.get_stored_total(), " crates=", world.sales_counter.get_displayed_crates())
     world.camera.global_position = focus + Vector3(0.0, world.camera_height, world.camera_distance)
     world.camera.look_at(focus, Vector3.UP)
     for frame in 6:

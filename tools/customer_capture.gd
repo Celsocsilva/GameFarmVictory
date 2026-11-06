@@ -18,11 +18,12 @@ func _run() -> void:
     world.harvest_controller.enabled = false
     var queue := world.customer_queue
     queue.set_process(false)
+    world.sales_controller.set_process(false)
     queue.set_seed(20261106)
     # Paciência longa só até juntar os 5, para a captura do limite.
     queue.min_patience = 999.0
     queue.max_patience = 999.0
-    var depot := world.tomato_depot
+    var depot := world.sales_counter
 
     # Bancada com algumas caixas e o fazendeiro chegando pelo lado da plantação.
     world.harvest_inventory.set_amount(&"tomato", 24)
