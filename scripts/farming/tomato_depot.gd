@@ -13,7 +13,8 @@ const CRATE_SIZE := Vector3(1.2, 0.48, 0.9)
 const CRATE_SPACING := Vector3(1.35, 0.58, 1.05)
 
 @export_range(0, 21, 1) var initial_displayed_crates: int = 0
-@export_range(1.0, 8.0, 0.1) var foot_inset: float = 3.5
+## Recuada da cerca para caber a fila dupla de 7 clientes do lado +Z.
+@export_range(1.0, 16.0, 0.1) var foot_inset: float = 11.5
 @export_range(0.5, 5.0, 0.1) var deposit_radius: float = 2.8
 @export_range(1, 64, 1) var units_per_crate: int = 8
 @export var item_id: StringName = &"tomato"

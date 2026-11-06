@@ -19,6 +19,7 @@ const HARVEST_INVENTORY_SCRIPT := preload("res://scripts/farming/harvest_invento
 const HARVEST_CONTROLLER_SCRIPT := preload("res://scripts/farming/harvest_controller.gd")
 const BACKPACK_CRATES_SCRIPT := preload("res://scripts/player/backpack_crates.gd")
 const TOMATO_DEPOT_SCRIPT := preload("res://scripts/farming/tomato_depot.gd")
+const CUSTOMER_QUEUE_SCRIPT := preload("res://scripts/customers/customer_queue.gd")
 
 ## Mochila nas costas do fazendeiro (a frente do fazendeiro é -Z local).
 const BACKPACK_OFFSET := Vector3(0.0, 1.1, 0.62)
@@ -50,6 +51,7 @@ var harvest_inventory: HarvestInventory
 var harvest_controller: HarvestController
 var backpack: BackpackCrates
 var tomato_depot: TomatoDepot
+var customer_queue: CustomerQueue
 ## cell_id -> CropPlant, para a colheita localizar a planta de cada célula.
 var crops: Dictionary = {}
 var harvest_label: Label
@@ -85,6 +87,10 @@ func _build_tomato_depot() -> void:
     add_child(tomato_depot)
     tomato_depot.place_at_map_foot(farm_size)
     tomato_depot.setup(harvest_inventory)
+    customer_queue = CUSTOMER_QUEUE_SCRIPT.new() as CustomerQueue
+    customer_queue.name = "CustomerQueue"
+    add_child(customer_queue)
+    customer_queue.setup(tomato_depot, farm_size * 0.5)
 
 func _build_planting_grid() -> void:
     planting_grid = PLANTING_GRID_SCRIPT.new()
