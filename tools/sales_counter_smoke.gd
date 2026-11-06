@@ -81,6 +81,20 @@ func _run() -> void:
     var base_near_x := money.global_position.x - MoneyStack.COLUMNS * MoneyStack.CELL_SIZE.x * 0.5 - 0.12
     if base_far_z >= counter.global_position.z or base_near_x <= counter.global_position.x + half.x:
         return _fail("base de dinheiro fora do lado do fazendeiro")
+    # Bloco fino de madeira clara, cantos arredondados, sob toda a grade 3 x 5.
+    var corners := money.get_children().filter(func(n): return n is MeshInstance3D and (n as MeshInstance3D).mesh is CylinderMesh)
+    var base_size := MoneyStack.get_base_size()
+    if corners.size() != 8 or base_size.y > 0.1 or base_size.x < MoneyStack.COLUMNS * MoneyStack.CELL_SIZE.x or base_size.z < MoneyStack.ROWS * MoneyStack.CELL_SIZE.y:
+        return _fail("base de madeira: %d cantos, tamanho %s" % [corners.size(), base_size])
+    var top := money.get_node("WoodBaseTop_X") as MeshInstance3D
+    var wood := (top.material_override as StandardMaterial3D).albedo_color
+    if not (wood.r > wood.g and wood.g > wood.b and wood.v > 0.7):
+        return _fail("cor da madeira %s" % wood)
+    # Sprite novo: cantos transparentes (fundo xadrez removido), centro opaco.
+    var art := MoneyStack.MONEY_TEXTURE.get_image()
+    if art.get_pixel(1, 1).a > 0.1 or art.get_pixel(art.get_width() / 2, art.get_height() / 2).a < 0.9:
+        return _fail("sprite do dinheiro sem transparência")
+    print("MONEY_BASE wood=%s size=%.2fx%.2fx%.2f corners=%d art=%s" % [wood, base_size.x, base_size.y, base_size.z, corners.size(), art.get_size()])
     money.add_money(20)
     if money.get_visible_bundles() != 20 or money.get_slot_height(0) != 2 or money.get_slot_height(4) != 2 or money.get_slot_height(5) != 1 or money.get_slot_height(14) != 1:
         return _fail("empilhamento: visíveis %d" % money.get_visible_bundles())
