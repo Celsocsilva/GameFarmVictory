@@ -19,6 +19,9 @@ func _run() -> void:
     var queue := world.customer_queue
     queue.set_process(false)
     queue.set_seed(20261106)
+    # Paciência longa só até juntar os 5, para a captura do limite.
+    queue.min_patience = 999.0
+    queue.max_patience = 999.0
     var depot := world.tomato_depot
 
     # Bancada com algumas caixas e o fazendeiro chegando pelo lado da plantação.
@@ -44,6 +47,28 @@ func _run() -> void:
     print("CAPTURE_MAX count=", queue.get_customer_count(), " paused=", queue.is_paused_full(), " times=", queue.spawn_times)
     await _shot(world, depot.global_position + Vector3(0.0, 0.0, 4.5), out_dir, "02-cinco-clientes-limite.png")
 
+    # Paciência real de 15-20 s a partir de agora.
+    queue.min_patience = 15.0
+    queue.max_patience = 20.0
+    for customer in queue.get_customers():
+        customer.patience_left = queue.rng.randf_range(15.0, 20.0)
+        customer.set_meta("arrived_at", queue.get_elapsed())
+    var leaves := queue.leave_log.size()
+    while queue.leave_log.size() == leaves:
+        _advance(queue, STEP)
+    for i in 18:
+        _advance(queue, STEP)
+    var leaver: Customer = queue.leave_log[queue.leave_log.size() - 1]["customer"]
+    print("CAPTURE_LEAVE waited=%.2f at=%.2f" % [queue.leave_log[queue.leave_log.size() - 1]["waited"], queue.get_elapsed()])
+    await _shot(world, depot.global_position + Vector3(0.0, 0.0, 4.5), out_dir, "05-cliente-indo-embora.png")
+    while not queue.return_log.any(func(e): return e["customer"] == leaver):
+        _advance(queue, STEP)
+    for i in 25:
+        _advance(queue, STEP)
+    var back: Dictionary = queue.return_log.filter(func(e): return e["customer"] == leaver)[0]
+    print("CAPTURE_RETURN away=%.2f at=%.2f" % [back["away"], queue.get_elapsed()])
+    await _shot(world, depot.global_position + Vector3(0.0, 0.0, 4.5), out_dir, "06-cliente-voltando.png")
+
     # 3. Pré-visualização do espaço: 2 filas x 7 lugares preenchidos à força.
     while queue.spawn_customer(true) != null:
         pass
@@ -57,8 +82,9 @@ func _run() -> void:
 
 func _advance(queue: CustomerQueue, delta: float) -> void:
     queue.tick(delta)
-    for customer in queue.get_customers():
-        customer.step(delta)
+    for child in queue.get_children():
+        if child is Customer and is_instance_valid(child):
+            (child as Customer).step(delta)
 
 func _shot(world: FarmWorld, focus: Vector3, out_dir: String, file: String, ortho_size: float = 0.0) -> void:
     var previous_size := world.camera.size

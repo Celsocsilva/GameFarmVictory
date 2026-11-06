@@ -28,6 +28,15 @@ var color_scheme_index := 0
 var lane := -1
 var slot := -1
 var is_leaving := false
+## Saída por impaciência: some ao chegar à saída e depois volta (não é liberado).
+var hide_on_exit := false
+## Chegou ao lugar da fila ao menos uma vez desde que entrou nela.
+var has_arrived := false
+## Segundos de espera restantes na fila (contam após a primeira chegada ao lugar).
+var patience_left := 0.0
+## Segundos restantes até voltar, enquanto está fora.
+var away_left := 0.0
+var _path: Array[Vector3] = []
 var _target := Vector3.ZERO
 var _walking := false
 var _walk_time := 0.0
@@ -56,8 +65,23 @@ func get_body_color() -> Color:
     return COLOR_SCHEMES[color_scheme_index]["body"]
 
 func walk_to(target: Vector3) -> void:
+    _path.clear()
     _target = target
     _walking = position.distance_to(_target) > ARRIVE_EPSILON
+    if not _walking:
+        _finish_walk()
+
+## Caminha por pontos intermediários (sair da fila pela lateral sem atravessar ninguém).
+func walk_path(points: Array[Vector3]) -> void:
+    if points.is_empty():
+        return
+    var rest := points.duplicate()
+    var first: Vector3 = rest.pop_front()
+    walk_to(first)
+    _path.assign(rest)
+
+func is_away() -> bool:
+    return is_leaving and hide_on_exit and not visible
 
 func is_walking() -> bool:
     return _walking
@@ -67,6 +91,9 @@ func get_target() -> Vector3:
 
 ## Coloca o cliente direto no lugar (capturas e testes).
 func snap_to_target() -> void:
+    if not _path.is_empty():
+        _target = _path[_path.size() - 1]
+        _path.clear()
     position = _target
     _finish_walk()
 
@@ -81,8 +108,11 @@ func step(delta: float) -> void:
     var distance := to_target.length()
     var advance := walk_speed * delta
     if distance <= maxf(advance, ARRIVE_EPSILON):
-        _finish_walk()
         position = _target
+        if not _path.is_empty():
+            _target = _path.pop_front()
+            return
+        _finish_walk()
         return
     var direction := to_target / distance
     position += direction * advance
@@ -95,8 +125,12 @@ func _finish_walk() -> void:
     _walking = false
     position.y = _target.y
     if is_leaving:
-        queue_free()
+        if hide_on_exit:
+            visible = false
+        else:
+            queue_free()
         return
+    has_arrived = true
     # Na fila, todos olham para a bancada (-Z do mundo).
     rotation.y = 0.0
     arrived.emit(self)
