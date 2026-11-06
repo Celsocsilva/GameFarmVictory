@@ -21,15 +21,17 @@ const SLOTS := COLUMNS * ROWS
 const MONEY_SCALE := 1.7
 ## Largura do maço no chão; a profundidade segue a proporção da arte.
 const BUNDLE_WIDTH := 0.74 * MONEY_SCALE
-## Proporção altura/largura de money_bundle.png (512 x 276).
-const ART_ASPECT := 276.0 / 512.0
+## Proporção altura/largura de money_bundle.png (512 x 263, maço horizontal
+## enviado pelo Celso em 06/11/2026: "Ícone de maço de dinheiro verde com cifrão").
+const ART_ASPECT := 263.0 / 512.0
 ## A câmera olha o chão a 45°: o eixo Z aparece encurtado por sin(45°), então
 ## o maço deitado é esticado por 1/sin(45°) para manter a proporção da arte.
 const VIEW_STRETCH := 1.0 / sin(deg_to_rad(45.0))
 ## Cada posição tem exatamente o tamanho do maço no chão: sem vão entre pilhas.
 const CELL_SIZE := Vector2(BUNDLE_WIDTH, BUNDLE_WIDTH * ART_ASPECT * VIEW_STRETCH)
-## Altura de cada camada: a espessura do maço desenhado na arte.
-const LAYER_STEP := 0.06 * MONEY_SCALE
+## Altura de cada camada: a espessura da lateral do maço desenhada na arte
+## (~17% da altura do PNG), para a pilha parecer contínua.
+const LAYER_STEP := 0.08 * MONEY_SCALE
 ## Bloco de madeira: espessura, raio dos cantos e borda fina além das pilhas.
 const BASE_HEIGHT := 0.08
 const BASE_MARGIN := 0.1
