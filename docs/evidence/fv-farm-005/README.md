@@ -16,7 +16,7 @@ Godot 4.7.2, renderizador Mobile, câmera da cena `farm_world.tscn`, 1280×720.
     O comprimento agora é compensado por 1/sin(45°) ≈ 1,41: cada tira tem 10,5 m (antes 7,4 m) e aparece na tela na proporção da arte (~2:1).
   - A borda próxima da casa fica fixa em z = 3,3; o canteiro cresce para longe do fazendeiro.
 - **Semeadura** (`scenes/vfx/SeedThrow.tscn`, `scripts/vfx/seed_throw.gd`):
-  - Arremesso: a semente cai 3,0 m à frente do fazendeiro, na direção do movimento (`PlantingGrid.throw_reach`).
+  - Arremesso: a semente cai 5,1 m à frente do fazendeiro (1,7× os 3,0 m anteriores), na direção do movimento (`PlantingGrid.throw_reach`).
   - 25 grãos por punhado em duas camadas: 7 no tamanho original (0,65×–1,45×) e 18 finos (0,12×–0,55×), mais abertos (30°) para pulverizar no ar. Faixa total de 12×.
   - Quatro formatos sorteados do atlas 2×2, giro aleatório, curva de escala e fade.
   - `billboard_keep_scale = true`: sem isso o Godot descartava a escala individual e todos os grãos saíam do mesmo tamanho.
@@ -38,7 +38,7 @@ Godot_v4.7.2-stable_win64_console.exe --headless --path . -s tools/farm_smoke.gd
 SOIL_OK texture=(466.0, 912.0) quad=(3.997291, 10.51738)
 GRID_OK cells=63 unique=63 front=PlantingPlot_01_r06_c00 back=PlantingPlot_01_r00_c00
 CROP_SIZES_OK SPROUT=1.18x0.80(+109%) GROWING=1.05x1.30(+34%) FLOWERING=1.28x1.40(+90%) GREEN_FRUIT=1.14x1.55(+60%) READY_TO_HARVEST=1.46x1.62(+59%)
-THROW_REACH_OK reach=3.0 distance=3.0
+THROW_REACH_OK reach=5.1 distance=5.1
 SEED_THROW_OK amount=25 ground_grains=11 scale=0.12-1.45 landing_error=0.0000003
 FARM_SMOKE_OK   (código de saída 0; qualquer falha sai com 1)
 ```
