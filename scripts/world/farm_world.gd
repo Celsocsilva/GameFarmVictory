@@ -16,15 +16,17 @@ const PLANTING_GRID_SCRIPT := preload("res://scripts/farming/planting_grid.gd")
 const CROP_PLANT_SCRIPT := preload("res://scripts/farming/crop_plant.gd")
 const SOIL_TEXTURE := preload("res://assets/textures/soil/plowed_soil_three_furrows.png")
 
+const SEED_HAND_OFFSET := Vector3(0.45, 1.15, -0.25)
+
 const PLANTING_PLOT_COUNT := 4
 const PLANTING_COLUMNS := 4
 const PLANTING_ROWS := 1
 const PLANTING_PLOT_WIDTH := 3.8
-# Proporção do novo PNG: 199 x 796. A altura é derivada da largura para
+# Proporção do PNG aprovado: 350 x 788. A altura é derivada da largura para
 # preservar o comprimento original, sem esticar ou comprimir a textura.
-const PLANTING_TEXTURE_ASPECT := 796.0 / 199.0
+const PLANTING_TEXTURE_ASPECT := 788.0 / 350.0
 # A margem transparente lateral da nova versão é mínima.
-const PLANTING_VISIBLE_WIDTH_RATIO := 0.96
+const PLANTING_VISIBLE_WIDTH_RATIO := 0.94
 const PLANTING_PLOT_SIZE := Vector2(
     PLANTING_PLOT_WIDTH,
     PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT
@@ -69,8 +71,14 @@ func _on_grid_cell_planted(cell_id: String) -> void:
     var cell: Dictionary = planting_grid.cells[cell_id]
     var seed_throw := SEED_THROW_SCENE.instantiate() as SeedThrow
     add_child(seed_throw)
-    seed_throw.launch(farmer.global_position + Vector3(0.45, 1.15, -0.25), cell["position"] + Vector3(0.0, 0.2, 0.0))
+    # O broto nasce quando o punhado toca o sulco, não no momento do arremesso.
+    seed_throw.landed.connect(_spawn_crop.bind(cell_id), CONNECT_ONE_SHOT)
+    seed_throw.launch(farmer.global_position + SEED_HAND_OFFSET, cell["position"] + Vector3(0.0, 0.2, 0.0))
+
+func _spawn_crop(_landing: Vector3, cell_id: String) -> void:
+    var cell: Dictionary = planting_grid.cells[cell_id]
     var crop := CROP_PLANT_SCRIPT.new() as CropPlant
+    crop.name = "Crop_" + cell_id
     crop.position = cell["position"]
     crop.cell_width = cell["cell_width"]
     add_child(crop)

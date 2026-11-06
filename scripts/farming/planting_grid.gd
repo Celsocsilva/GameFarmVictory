@@ -5,7 +5,7 @@ signal cell_planted(cell_id: String)
 
 @export var planting_radius: float = 0.95
 @export var columns: int = 3
-@export var rows_per_module: int = 5
+@export var rows_per_module: int = 6
 @export var row_spacing: float = 2.1
 @export var test_mode: bool = true
 
