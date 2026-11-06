@@ -55,6 +55,7 @@ func _ready() -> void:
     _build_obstacles()
     _build_camera()
     _build_hud()
+    _prewarm_seed_throw()
     camera_focus = farmer.global_position
 
 func _process(delta: float) -> void:
@@ -81,6 +82,15 @@ func _on_grid_cell_planted(cell_id: String) -> void:
     # O broto nasce quando o punhado toca o sulco, não no momento do arremesso.
     seed_throw.landed.connect(_spawn_crop.bind(cell_id), CONNECT_ONE_SHOT)
     seed_throw.launch(farmer.global_position + SEED_HAND_OFFSET, cell["position"] + Vector3(0.0, 0.2, 0.0))
+
+## Dispara um punhado invisível sob o terreno para compilar os shaders das
+## partículas na carga da cena; sem isso o primeiro arremesso real engasga.
+func _prewarm_seed_throw() -> void:
+    var warmup := SEED_THROW_SCENE.instantiate() as SeedThrow
+    warmup.name = "SeedThrowWarmup"
+    warmup.ground_grain_count = 1
+    add_child(warmup)
+    warmup.launch(Vector3(0.0, -40.0, 0.0), Vector3(0.5, -40.0, 0.5))
 
 func _spawn_crop(_landing: Vector3, cell_id: String) -> void:
     var cell: Dictionary = planting_grid.cells[cell_id]

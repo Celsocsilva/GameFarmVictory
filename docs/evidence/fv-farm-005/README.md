@@ -16,12 +16,13 @@ Godot 4.7.2, renderizador Mobile, câmera da cena `farm_world.tscn`, 1280×720.
     O comprimento agora é compensado por 1/sin(45°) ≈ 1,41: cada tira tem 10,5 m (antes 7,4 m) e aparece na tela na proporção da arte (~2:1).
   - A borda próxima da casa fica fixa em z = 3,3; o canteiro cresce para longe do fazendeiro.
 - **Semeadura** (`scenes/vfx/SeedThrow.tscn`, `scripts/vfx/seed_throw.gd`):
-  - 18 sementes por punhado, saindo de uma esfera de 0,14 m (a "mão"), com escalonamento de 12% do voo (`explosiveness` 0,88).
-  - Tamanhos de 0,45× a 1,25× e quatro formatos sorteados do atlas 2×2 (`tomato_seed_atlas_2x2.png`).
-  - Rotação inicial e giro aleatórios; curva de escala (cresce ao sair da mão, encolhe ao pousar) e fade final, sem "sumir de repente".
-  - Velocidade resolvida para o centro do punhado acertar a célula (erro < 1e-7 m), ±18% de força para espalhar a queda.
-  - Novo sinal `landed`: o broto nasce quando o punhado toca o sulco, não no arremesso.
-  - Removido `fixed_fps = 60` das partículas: com ele o punhado ficava parado na mão nos primeiros quadros.
+  - Arremesso: a semente cai 3,0 m à frente do fazendeiro, na direção do movimento (`PlantingGrid.throw_reach`).
+  - 25 grãos por punhado em duas camadas: 7 no tamanho original (0,65×–1,45×) e 18 finos (0,12×–0,55×), mais abertos (30°) para pulverizar no ar. Faixa total de 12×.
+  - Quatro formatos sorteados do atlas 2×2, giro aleatório, curva de escala e fade.
+  - `billboard_keep_scale = true`: sem isso o Godot descartava a escala individual e todos os grãos saíam do mesmo tamanho.
+  - Ao pousar, 11 grãos ficam deitados no sulco (raio 1,05 m, muitos pequenos e poucos grandes) e somem em ~1 s.
+  - Sinal `landed`: o broto nasce quando o punhado toca o sulco.
+  - Aquecimento das partículas ao carregar a cena, para o primeiro arremesso não engasgar. `fixed_fps` removido.
 - **Tomates** (`scripts/farming/crop_plant.gd`):
   - Cada PNG é recortado ao conteúdo opaco (`region_rect`), e o tamanho é calculado pelo desenho real, não pelo quadro 1254×1254 com margens.
   - Altura por estágio (`stage_heights`) e largura máxima de 1,15× a célula. Ganho de altura em relação ao dimensionamento anterior: broto +109%, crescimento +34%, floração +90%, fruto verde +60%, maduro +59%.
@@ -37,7 +38,8 @@ Godot_v4.7.2-stable_win64_console.exe --headless --path . -s tools/farm_smoke.gd
 SOIL_OK texture=(466.0, 912.0) quad=(3.997291, 10.51738)
 GRID_OK cells=63 unique=63 front=PlantingPlot_01_r06_c00 back=PlantingPlot_01_r00_c00
 CROP_SIZES_OK SPROUT=1.18x0.80(+109%) GROWING=1.05x1.30(+34%) FLOWERING=1.28x1.40(+90%) GREEN_FRUIT=1.14x1.55(+60%) READY_TO_HARVEST=1.46x1.62(+59%)
-SEED_THROW_OK amount=18 scale=0.45-1.25 landing_error=0.00000004
+THROW_REACH_OK reach=3.0 distance=3.0
+SEED_THROW_OK amount=25 ground_grains=11 scale=0.12-1.45 landing_error=0.0000003
 FARM_SMOKE_OK   (código de saída 0; qualquer falha sai com 1)
 ```
 
@@ -47,7 +49,8 @@ Capturas (`Godot_v4.7.2-stable_win64_console.exe --path . -s tools/farm_capture.
 - `01b-soil-overview.png` / `02b-growth-stages-overview.png`: zoom aberto mostrando as 3 tiras inteiras.
 - `02-growth-stages.png`: um estágio por canteiro (broto, crescimento, floração, fruto verde) e maduros na frente.
 - `03-ready-full-field.png`: 63 tomateiros maduros.
-- `04/05/06-seed-handful-*.png`: o mesmo punhado em 0,12 s, 0,38 s e 0,66 s.
+- `04/05/06/07-seed-*.png`: o mesmo punhado em 0,15 s, 0,42 s, 0,78 s e 1,0 s (grãos no solo).
+- `08-seed-sizes-closeup.png` / `09-seed-ground-closeup.png`: câmera aproximada mostrando a variação de tamanho no ar e no sulco.
 
 ## Riscos e pendências
 

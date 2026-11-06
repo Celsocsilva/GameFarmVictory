@@ -21,6 +21,7 @@ func _run() -> void:
     await process_frame
     _check_soil(world)
     _check_grid(world)
+    _check_throw_reach(world)
     await _check_crop_sizes(world)
     await _check_seed_throw(world)
     if _failures > 0:
@@ -77,6 +78,28 @@ func _check_grid(world: FarmWorld) -> void:
     grid.cell_planted.connect(world._on_grid_cell_planted)
     print("GRID_OK cells=", grid.cells.size(), " unique=", positions.size(), " front=", front["id"], " back=", back["id"])
 
+func _check_throw_reach(world: FarmWorld) -> void:
+    # Grade nova (sem sinal ligado) com os mesmos canteiros do mundo.
+    var grid := PlantingGrid.new()
+    world.add_child(grid)
+    var modules: Array[Area3D] = []
+    for child in world.get_node("PlantingArea").get_children():
+        modules.append(child as Area3D)
+    grid.configure(modules)
+    var cell: Dictionary = grid.cells.values()[grid.cells.size() / 2]
+    var cell_position: Vector3 = cell["position"]
+    # Fazendeiro andando em +Z, parado a throw_reach antes da célula: ela deve ser semeada.
+    var farmer_position := cell_position - Vector3(0.0, 0.0, grid.throw_reach)
+    grid.process_farmer_position(farmer_position - Vector3(0.0, 0.0, 0.3), 0.0)
+    grid.process_farmer_position(farmer_position, 0.4)
+    var planted: Array = grid.cells.values().filter(func(c: Dictionary) -> bool: return c["state"] != "EMPTY")
+    _check(planted.size() == 1, "Um punhado por passo")
+    var hit: Vector3 = planted[0]["position"] if planted.size() > 0 else Vector3.INF
+    var distance := Vector2(hit.x - farmer_position.x, hit.z - farmer_position.z).length()
+    _check(distance >= grid.throw_reach - grid.planting_radius, "Semente deve cair longe do pé do fazendeiro")
+    print("THROW_REACH_OK reach=", grid.throw_reach, " distance=", snappedf(distance, 0.01))
+    grid.queue_free()
+
 func _check_crop_sizes(world: FarmWorld) -> void:
     var cell: Dictionary = world.planting_grid.cells.values()[0]
     var cell_width: float = cell["cell_width"]
@@ -124,17 +147,27 @@ func _check_seed_throw(world: FarmWorld) -> void:
     var material := particles.process_material as ParticleProcessMaterial
     var draw_material := (particles.draw_pass_1 as QuadMesh).material as StandardMaterial3D
     _check(particles.emitting, "Punhado deve estar emitindo")
-    _check(particles.amount >= 12, "Punhado deve ter ao menos 12 sementes")
-    _check(material.scale_max / material.scale_min >= 2.0, "Sementes devem variar de tamanho (>=2x)")
+    _check(particles.amount >= 6, "Punhado deve ter ao menos 6 grãos principais")
+    var fine_material := throw.fine_particles.process_material as ParticleProcessMaterial
+    _check(throw.fine_particles.emitting and throw.fine_particles.amount >= 15, "Camada de grãos finos emitindo")
+    _check(fine_material.scale_max < material.scale_min, "Grãos finos devem ser menores que os principais")
+    _check(fine_material.spread > material.spread, "Grãos finos devem abrir mais (pulverizado)")
+    _check(material.scale_max / fine_material.scale_min >= 10.0, "Faixa total de tamanhos >= 10x")
     _check(material.scale_curve != null, "Curva de escala para pousar suavemente")
     _check(material.anim_offset_max > material.anim_offset_min, "Sementes devem sortear formatos do atlas")
+    # Sem keep_scale o billboard de partículas descarta scale_min/max e a curva.
+    _check(draw_material.billboard_keep_scale, "Billboard deve manter a escala de cada semente")
     _check(draw_material.particles_anim_h_frames * draw_material.particles_anim_v_frames == 4, "Atlas 2x2 de sementes")
     _check(particles.explosiveness < 1.0, "Saída escalonada (punhado fluido)")
-    var amount := particles.amount
+    var amount := particles.amount + throw.fine_particles.amount
+    var ground_grains := [0]
+    throw.landed.connect(func(_point: Vector3) -> void:
+        ground_grains[0] = throw.get_children().filter(func(n: Node) -> bool: return n is Sprite3D).size(), CONNECT_DEFERRED)
     var start := Time.get_ticks_msec()
     while is_instance_valid(throw) and Time.get_ticks_msec() - start < 3000:
         await process_frame
     _check(landed[0], "SeedThrow deve emitir landed para o broto nascer no pouso")
+    _check(ground_grains[0] >= 8, "Grãos devem ficar espalhados no solo após o pouso")
     _check(not is_instance_valid(throw), "SeedThrow deve se liberar após o voo")
-    print("SEED_THROW_OK amount=", amount,
-        " scale=", material.scale_min, "-", material.scale_max, " landing_error=", landing.distance_to(target))
+    print("SEED_THROW_OK amount=", amount, " ground_grains=", ground_grains[0],
+        " scale=", fine_material.scale_min, "-", material.scale_max, " landing_error=", landing.distance_to(target))

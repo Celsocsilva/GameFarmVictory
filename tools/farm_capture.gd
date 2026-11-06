@@ -8,8 +8,9 @@ var world: FarmWorld
 
 func _initialize() -> void:
     var args := OS.get_cmdline_user_args()
-    if args.size() > 0:
-        _out_dir = args[0]
+    for arg in args:
+        if not arg.begins_with("--"):
+            _out_dir = arg
     _seeds_only = args.has("--seeds-only")
     call_deferred("_run")
 
@@ -40,17 +41,29 @@ func _capture_fields() -> void:
 
 func _capture_seed_handful() -> void:
     await _load_world()
-    await _frames(10)
+    # Espera o aquecimento de shaders do FarmWorld terminar, como na partida real.
+    await _frames(90)
     var grid := world.planting_grid
-    var target: Dictionary = grid.get_available_cells_near(world.farmer.global_position + Vector3(0, 0, 4.5), 3.0)[0]
+    var target: Dictionary = grid.get_available_cells_near(world.farmer.global_position + Vector3(0, 0, 6.9), 3.0)[0]
     grid.plant_cell(target["id"])
-    var shots := [[0.12, "04-seed-handful-release"], [0.38, "05-seed-handful-flight"], [0.66, "06-seed-handful-landing"]]
+    var shots := [[0.15, "04-seed-handful-release"], [0.42, "05-seed-handful-flight"], [0.78, "06-seed-handful-landing"], [1.0, "07-seed-ground-scatter"]]
     var start := Time.get_ticks_msec()
     for shot in shots:
         while (Time.get_ticks_msec() - start) / 1000.0 < shot[0]:
             await process_frame
         _save(shot[1])
     await _frames(10)
+    # Close: segundo punhado com a câmera aproximada, para ver os tamanhos dos grãos.
+    world.set_process(false)
+    world.camera.size = 6.0
+    world.camera.global_position += Vector3(0.0, 0.0, 1.5)
+    var second: Dictionary = grid.get_available_cells_near(world.farmer.global_position + Vector3(1.2, 0, 5.0), 3.0)[0]
+    grid.plant_cell(second["id"])
+    start = Time.get_ticks_msec()
+    for shot in [[0.4, "08-seed-sizes-closeup"], [1.0, "09-seed-ground-closeup"]]:
+        while (Time.get_ticks_msec() - start) / 1000.0 < shot[0]:
+            await process_frame
+        _save(shot[1])
 
 func _load_world() -> void:
     if world:

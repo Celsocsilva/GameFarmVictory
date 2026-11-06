@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/vfx/seed_throw.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/seeds/tomato_seed_atlas_2x2.png" id="2"]
@@ -9,6 +9,7 @@ shading_mode = 0
 cull_mode = 2
 vertex_color_use_as_albedo = true
 billboard_mode = 3
+billboard_keep_scale = true
 particles_anim_h_frames = 2
 particles_anim_v_frames = 2
 particles_anim_loop = false
@@ -37,7 +38,7 @@ lifetime_randomness = 0.12
 emission_shape = 1
 emission_sphere_radius = 0.14
 direction = Vector3(0, 1, 0)
-spread = 16.0
+spread = 14.0
 gravity = Vector3(0, -9.8, 0)
 initial_velocity_min = 3.2
 initial_velocity_max = 4.8
@@ -45,8 +46,27 @@ angle_min = -180.0
 angle_max = 180.0
 angular_velocity_min = -360.0
 angular_velocity_max = 360.0
-scale_min = 0.45
-scale_max = 1.25
+scale_min = 0.65
+scale_max = 1.45
+scale_curve = SubResource("ScaleCurveTexture")
+color_ramp = SubResource("FadeTexture")
+anim_offset_max = 1.0
+
+[sub_resource type="ParticleProcessMaterial" id="FineProcess"]
+lifetime_randomness = 0.12
+emission_shape = 1
+emission_sphere_radius = 0.2
+direction = Vector3(0, 1, 0)
+spread = 30.0
+gravity = Vector3(0, -9.8, 0)
+initial_velocity_min = 3.2
+initial_velocity_max = 4.8
+angle_min = -180.0
+angle_max = 180.0
+angular_velocity_min = -360.0
+angular_velocity_max = 360.0
+scale_min = 0.12
+scale_max = 0.55
 scale_curve = SubResource("ScaleCurveTexture")
 color_ramp = SubResource("FadeTexture")
 anim_offset_max = 1.0
@@ -56,13 +76,24 @@ script = ExtResource("1")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 emitting = false
-amount = 18
-lifetime = 0.75
+amount = 7
+lifetime = 0.85
 one_shot = true
-explosiveness = 0.88
+explosiveness = 0.86
 randomness = 0.4
-
 local_coords = false
 draw_pass_1 = SubResource("Mesh")
 process_material = SubResource("Process")
+visibility_aabb = AABB(-12, -8, -12, 24, 16, 24)
+
+[node name="FineSeeds" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 18
+lifetime = 0.85
+one_shot = true
+explosiveness = 0.86
+randomness = 0.5
+local_coords = false
+draw_pass_1 = SubResource("Mesh")
+process_material = SubResource("FineProcess")
 visibility_aabb = AABB(-12, -8, -12, 24, 16, 24)
