@@ -12,8 +12,10 @@ const STATE_HARVESTING := "HARVESTING"
 const STATE_HARVESTED := "HARVESTED"
 
 @export var planting_radius: float = 0.95
-## Distância à frente do fazendeiro onde o punhado cai (arremesso, não plantio no pé).
-@export_range(0.0, 8.0, 0.1) var throw_reach: float = 5.1
+## Faixa de semeadura: do pé do fazendeiro até N plantas à frente, no mesmo sulco.
+@export_range(1, 5, 1) var seed_plants_ahead: int = 3
+## Máximo de covas semeadas por passo (a do pé + as da frente).
+@export_range(1, 6, 1) var seeds_per_step: int = 4
 @export var columns: int = 3
 @export var rows_per_module: int = 7
 @export var row_spacing: float = 2.1
@@ -21,6 +23,7 @@ const STATE_HARVESTED := "HARVESTED"
 
 var cells: Dictionary = {}
 var _cell_spacing := 1.0
+var _row_step := 1.0
 var _last_farmer_position := Vector3.ZERO
 var _has_previous_position := false
 var _plant_accumulator := 0.0
@@ -34,6 +37,7 @@ func configure(modules: Array[Area3D]) -> void:
         var module_length := shape.size.z
         var cell_width := module_width / float(columns)
         var cell_length := module_length / float(rows_per_module)
+        _row_step = cell_length
         for row in rows_per_module:
             for column in columns:
                 var cell_id := "%s_r%02d_c%02d" % [module.name, row, column]
@@ -81,15 +85,35 @@ func process_farmer_position(world_position: Vector3, delta: float) -> void:
     var flat_travel := Vector3(travel.x, 0.0, travel.z)
     if flat_travel.length() > 0.05:
         _facing = flat_travel.normalized()
-    var reach := _facing * throw_reach
-    var sample_count := maxi(1, int(ceil(travel.length() / 0.45)))
-    for sample in sample_count + 1:
-        var sample_position := _last_farmer_position.lerp(world_position, float(sample) / float(sample_count)) + reach
-        var available := get_available_cells_near(sample_position, planting_radius)
-        if not available.is_empty():
-            plant_cell(available[0]["id"])
-            break
+    for cell in get_seed_band_cells(world_position, _facing):
+        plant_cell(cell["id"])
     _last_farmer_position = world_position
+
+## Comprimento da faixa à frente: seed_plants_ahead fileiras + meia fileira de folga.
+func get_seed_band_length() -> float:
+    return (float(seed_plants_ahead) + 0.5) * _row_step
+
+## Covas vazias do pé do fazendeiro até seed_plants_ahead plantas à frente, no
+## sulco mais próximo da linha de caminhada, da mais próxima para a mais distante.
+func get_seed_band_cells(origin: Vector3, facing: Vector3) -> Array[Dictionary]:
+    var forward := Vector2(facing.x, facing.z)
+    forward = forward.normalized() if forward.length() > 0.001 else Vector2(0.0, 1.0)
+    var band_start := -0.5 * _row_step
+    var band_end := get_seed_band_length()
+    var lateral_limit := _cell_spacing * 0.55
+    var candidates: Array = []
+    for cell in cells.values():
+        if cell["state"] != "EMPTY":
+            continue
+        var offset := Vector2(cell["position"].x - origin.x, cell["position"].z - origin.z)
+        var along := offset.dot(forward)
+        if along >= band_start and along <= band_end and absf(offset.cross(forward)) <= lateral_limit:
+            candidates.append([along, cell])
+    candidates.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+    var result: Array[Dictionary] = []
+    for entry in candidates.slice(0, seeds_per_step):
+        result.append(entry[1])
+    return result
 
 func get_cell_at_world(world_pos: Vector3) -> Dictionary:
     var nearest: Dictionary = {}

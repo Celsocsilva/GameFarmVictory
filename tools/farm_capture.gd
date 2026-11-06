@@ -41,13 +41,14 @@ func _capture_fields() -> void:
 
 func _capture_seed_handful() -> void:
     await _load_world()
-    # Parado, o fazendeiro mira para trás: evita que a grade semeie sozinha a
-    # célula a throw_reach enquanto esperamos o aquecimento de shaders.
-    world.planting_grid._facing = Vector3(0.0, 0.0, -1.0)
-    await _frames(90)
     var grid := world.planting_grid
-    var target: Dictionary = grid.get_available_cells_near(world.farmer.global_position + Vector3(0, 0, grid.throw_reach), 3.0)[0]
-    grid.plant_cell(target["id"])
+    # Fazendeiro sobre a 1ª cova do sulco central, olhando para +Z. A grade fica
+    # sem processar para não semear sozinha durante a espera.
+    world.set_process(false)
+    _place_farmer(grid.cells["PlantingPlot_02_r00_c01"]["position"])
+    await _frames(90)
+    for cell in grid.get_seed_band_cells(world.farmer.global_position, Vector3(0.0, 0.0, 1.0)):
+        grid.plant_cell(cell["id"])
     var shots := [[0.15, "04-seed-handful-release"], [0.42, "05-seed-handful-flight"], [0.78, "06-seed-handful-landing"], [1.0, "07-seed-ground-scatter"]]
     var start := Time.get_ticks_msec()
     for shot in shots:
@@ -59,13 +60,19 @@ func _capture_seed_handful() -> void:
     world.set_process(false)
     world.camera.size = 6.0
     world.camera.global_position += Vector3(0.0, 0.0, 1.5)
-    var second: Dictionary = grid.get_available_cells_near(world.farmer.global_position + Vector3(1.2, 0, grid.throw_reach), 3.0)[0]
-    grid.plant_cell(second["id"])
+    for cell in grid.get_seed_band_cells(grid.cells["PlantingPlot_02_r00_c02"]["position"], Vector3(0.0, 0.0, 1.0)):
+        grid.plant_cell(cell["id"])
     start = Time.get_ticks_msec()
     for shot in [[0.4, "08-seed-sizes-closeup"], [1.0, "09-seed-ground-closeup"]]:
         while (Time.get_ticks_msec() - start) / 1000.0 < shot[0]:
             await process_frame
         _save(shot[1])
+
+func _place_farmer(cell_position: Vector3) -> void:
+    world.farmer.global_position = Vector3(cell_position.x, world.farmer.global_position.y, cell_position.z - 0.2)
+    world.camera_focus = world.farmer.global_position
+    world.camera.global_position = world.camera_focus + Vector3(0.0, world.camera_height, world.camera_distance)
+    world.camera.look_at(world.camera_focus, Vector3.UP)
 
 func _load_world() -> void:
     if world:
