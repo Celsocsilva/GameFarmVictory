@@ -142,7 +142,7 @@ func _run() -> void:
         return _fail("sprite do dinheiro sem transparência")
     print("MONEY_BASE wood=%s size=%.2fx%.2fx%.2f corners=%d art=%s" % [wood, base_size.x, base_size.y, base_size.z, corners.size(), art.get_size()])
     # Base compacta: pilhas encostadas (posição = tamanho do maço) e borda fina.
-    if not MoneyStack.CELL_SIZE.is_equal_approx(Vector2(MoneyStack.BUNDLE_WIDTH, MoneyStack.BUNDLE_WIDTH * 276.0 / 512.0 * MoneyStack.VIEW_STRETCH)):
+    if not MoneyStack.CELL_SIZE.is_equal_approx(Vector2(MoneyStack.BUNDLE_WIDTH, MoneyStack.BUNDLE_WIDTH * MoneyStack.ART_ASPECT * MoneyStack.VIEW_STRETCH)):
         return _fail("vão entre pilhas: posição %s" % MoneyStack.CELL_SIZE)
     var art_aspect := float(art.get_height()) / float(art.get_width())
     if absf(art_aspect - MoneyStack.ART_ASPECT) > 0.005:
