@@ -1,0 +1,37 @@
+{
+  "crop_id": "tomato",
+  "display_name": "Tomate",
+  "harvest_stage": "READY_TO_HARVEST",
+  "stages": [
+    {
+      "id": "SEED",
+      "label": "Semente",
+      "asset": "res://assets/seeds/tomato_seed.png"
+    },
+    {
+      "id": "SPROUT",
+      "label": "Broto",
+      "asset": "res://assets/crops/tomato/stages/01_sprout.png"
+    },
+    {
+      "id": "GROWING",
+      "label": "Crescimento vegetativo",
+      "asset": "res://assets/crops/tomato/stages/02_vegetative_growth.png"
+    },
+    {
+      "id": "FLOWERING",
+      "label": "Floração e frutificação",
+      "asset": "res://assets/crops/tomato/stages/03_flowering_fruit_set.png"
+    },
+    {
+      "id": "GREEN_FRUIT",
+      "label": "Fruto verde",
+      "asset": "res://assets/crops/tomato/stages/04_green_fruit.png"
+    },
+    {
+      "id": "READY_TO_HARVEST",
+      "label": "Pronto para colheita",
+      "asset": "res://assets/crops/tomato/stages/05_ready_to_harvest.png"
+    }
+  ]
+}
