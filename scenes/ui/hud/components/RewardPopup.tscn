@@ -1,14 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud/reward_popup.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/ui/components/panel_reward_popup.png" id="2_bg"]
 [ext_resource type="Texture2D" path="res://assets/ui/components/field_input_wide.png" id="3_plate"]
 [ext_resource type="Texture2D" path="res://assets/currency/cash_bundle_official.png" id="4_cash"]
-[ext_resource type="Texture2D" path="res://assets/ui/components/button_cta_green_large.png" id="5_button"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_card"]
-atlas = ExtResource("2_bg")
-region = Rect2(0, 184, 543, 485)
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/CtaButton.tscn" id="5_button"]
 
 [node name="RewardPopup" type="Control"]
 layout_mode = 3
@@ -31,8 +27,8 @@ color = Color(0.08, 0.05, 0.02, 0.45)
 
 [node name="Card" type="Control" parent="."]
 layout_mode = 0
-offset_right = 543.0
-offset_bottom = 485.0
+offset_right = 577.0
+offset_bottom = 546.0
 mouse_filter = 2
 
 [node name="Background" type="TextureRect" parent="Card"]
@@ -43,16 +39,16 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = SubResource("AtlasTexture_card")
+texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="TitleLabel" type="Label" parent="Card"]
 layout_mode = 0
-offset_left = 92.0
-offset_top = 170.0
-offset_right = 451.0
-offset_bottom = 242.0
+offset_left = 105.0
+offset_top = 213.0
+offset_right = 472.0
+offset_bottom = 285.0
 mouse_filter = 2
 text = "Recompensa!"
 horizontal_alignment = 1
@@ -60,10 +56,10 @@ vertical_alignment = 1
 
 [node name="MessageLabel" type="Label" parent="Card"]
 layout_mode = 0
-offset_left = 40.0
-offset_top = 262.0
-offset_right = 503.0
-offset_bottom = 318.0
+offset_left = 60.0
+offset_top = 300.0
+offset_right = 517.0
+offset_bottom = 352.0
 mouse_filter = 2
 text = "Missão concluída!"
 horizontal_alignment = 1
@@ -71,10 +67,10 @@ vertical_alignment = 1
 
 [node name="ValuePlate" type="TextureRect" parent="Card"]
 layout_mode = 0
-offset_left = 96.0
-offset_top = 322.0
-offset_right = 447.0
-offset_bottom = 398.0
+offset_left = 108.0
+offset_top = 348.0
+offset_right = 469.0
+offset_bottom = 438.0
 mouse_filter = 2
 texture = ExtResource("3_plate")
 expand_mode = 1
@@ -82,10 +78,10 @@ stretch_mode = 5
 
 [node name="ValueIcon" type="TextureRect" parent="Card"]
 layout_mode = 0
-offset_left = 118.0
-offset_top = 327.0
-offset_right = 222.0
-offset_bottom = 397.0
+offset_left = 132.0
+offset_top = 358.0
+offset_right = 232.0
+offset_bottom = 428.0
 mouse_filter = 2
 texture = ExtResource("4_cash")
 expand_mode = 1
@@ -93,33 +89,19 @@ stretch_mode = 5
 
 [node name="ValueLabel" type="Label" parent="Card"]
 layout_mode = 0
-offset_left = 226.0
-offset_top = 322.0
-offset_right = 432.0
-offset_bottom = 398.0
+offset_left = 236.0
+offset_top = 348.0
+offset_right = 456.0
+offset_bottom = 438.0
 mouse_filter = 2
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CollectButton" type="TextureButton" parent="Card"]
+[node name="CollectButton" parent="Card" instance=ExtResource("5_button")]
 layout_mode = 0
-offset_left = 126.0
-offset_top = 400.0
-offset_right = 417.0
-offset_bottom = 498.0
-texture_normal = ExtResource("5_button")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="ButtonLabel" type="Label" parent="Card/CollectButton"]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 291.0
-offset_bottom = 90.0
-mouse_filter = 2
-text = "Coletar"
-horizontal_alignment = 1
-vertical_alignment = 1
+offset_left = 138.0
+offset_top = 445.0
+offset_right = 438.0
+offset_bottom = 531.0
 

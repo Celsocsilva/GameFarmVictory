@@ -37,3 +37,13 @@
 - `assets/ui/components/panel_shop_large.png` — Large shop or content panel background with awning and blank center. (816x487)
 - `assets/ui/components/panel_reward_popup.png` — Reward popup card background with ribbon and gift area; contains no reward numbers. (543x669)
 - `assets/currency/cash_bundle_official.png` — Approved official cash bundle for runtime UI and economy indicators. (303x206)
+
+## Revisões v5 — recortes corrigidos
+- `assets/ui/components/button_cta_green_large.png` — Botão CTA verde; tamanho: 664×191 px; aumento de largura visível: 30.1%.
+- `assets/ui/components/button_cta_orange_large.png` — Botão CTA laranja; tamanho: 606×191 px; aumento de largura visível: 29.93%.
+- `assets/ui/components/button_cta_blue_large.png` — Botão CTA azul; tamanho: 522×190 px; aumento de largura visível: 30.05%.
+- `assets/ui/components/pill_small_cream.png` — Plaqueta creme pequena; tamanho: 215×116 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/pill_medium_cream.png` — Plaqueta creme média; tamanho: 401×143 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/panel_tabbed_small.png` — Painel creme com aba superior; tamanho: 305×177 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/button_round_green.png` — Botão redondo verde; tamanho: 195×208 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/panel_reward_popup.png` — Painel de recompensa completo; tamanho: 577×546 px; aumento de largura visível: 0.0%.

@@ -19,6 +19,10 @@ class_name HudCounter
         _apply()
 @export var placeholder_text := "0"
 
+## Emitido uma vez por mudança de texto (testes de atualização única).
+signal value_changed(text: String)
+var update_count := 0
+
 @onready var _background: TextureRect = $Background
 @onready var _value_label: Label = $ValueLabel
 
@@ -55,5 +59,8 @@ func _set_text(text: String, animate: bool) -> void:
     if _value_label.text == text:
         return
     _value_label.text = text
+    UiStyle.fit_font(_value_label, font_size)
+    update_count += 1
+    value_changed.emit(text)
     if animate:
         UiStyle.pulse(_value_label)

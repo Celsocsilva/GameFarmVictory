@@ -3,9 +3,9 @@ class_name PlayerLevelPanel
 ## Painel do fazendeiro (player_level_panel_bg.png): nível na estrela, título e
 ## barra de experiência, tudo desenhado pela engine.
 
-const LEVEL_RECT := Rect2(208, 160, 86, 76)
-const TITLE_RECT := Rect2(300, 90, 282, 58)
-const XP_RECT := Rect2(312, 152, 262, 46)
+const LEVEL_RECT := Rect2(220, 172, 86, 76)
+const TITLE_RECT := Rect2(312, 102, 282, 58)
+const XP_RECT := Rect2(324, 164, 262, 46)
 
 @onready var level_label: Label = $LevelLabel
 @onready var title_label: Label = $TitleLabel

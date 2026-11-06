@@ -1,0 +1,178 @@
+[
+  {
+    "file": "assets/ui/components/button_cta_green_large.png",
+    "description": "Botão CTA verde",
+    "source_component": [
+      34,
+      38,
+      528,
+      205
+    ],
+    "original_visible_size": [
+      495,
+      171
+    ],
+    "final_png_size": [
+      664,
+      191
+    ],
+    "visible_width_gain_pct": 30.1,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/button_cta_orange_large.png",
+    "description": "Botão CTA laranja",
+    "source_component": [
+      556,
+      38,
+      1005,
+      205
+    ],
+    "original_visible_size": [
+      451,
+      171
+    ],
+    "final_png_size": [
+      606,
+      191
+    ],
+    "visible_width_gain_pct": 29.93,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/button_cta_blue_large.png",
+    "description": "Botão CTA azul",
+    "source_component": [
+      1029,
+      38,
+      1412,
+      204
+    ],
+    "original_visible_size": [
+      386,
+      170
+    ],
+    "final_png_size": [
+      522,
+      190
+    ],
+    "visible_width_gain_pct": 30.05,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/pill_small_cream.png",
+    "description": "Plaqueta creme pequena",
+    "source_component": [
+      92,
+      410,
+      283,
+      504
+    ],
+    "original_visible_size": [
+      195,
+      96
+    ],
+    "final_png_size": [
+      215,
+      116
+    ],
+    "visible_width_gain_pct": 0.0,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/pill_medium_cream.png",
+    "description": "Plaqueta creme média",
+    "source_component": [
+      345,
+      397,
+      725,
+      518
+    ],
+    "original_visible_size": [
+      381,
+      123
+    ],
+    "final_png_size": [
+      401,
+      143
+    ],
+    "visible_width_gain_pct": 0.0,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/panel_tabbed_small.png",
+    "description": "Painel creme com aba superior",
+    "source_component": [
+      800,
+      375,
+      1082,
+      530
+    ],
+    "original_visible_size": [
+      285,
+      157
+    ],
+    "final_png_size": [
+      305,
+      177
+    ],
+    "visible_width_gain_pct": 0.0,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/button_round_green.png",
+    "description": "Botão redondo verde",
+    "source_component": [
+      1166,
+      373,
+      1338,
+      549
+    ],
+    "original_visible_size": [
+      175,
+      188
+    ],
+    "final_png_size": [
+      195,
+      208
+    ],
+    "visible_width_gain_pct": 0.0,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  },
+  {
+    "file": "assets/ui/components/panel_reward_popup.png",
+    "description": "Painel de recompensa completo",
+    "source_component": [
+      870,
+      542,
+      1413,
+      1041
+    ],
+    "original_visible_size": [
+      545,
+      514
+    ],
+    "final_png_size": [
+      577,
+      546
+    ],
+    "visible_width_gain_pct": 0.0,
+    "alpha_channel": true,
+    "corners_transparent": true,
+    "no_static_numbers": true
+  }
+]

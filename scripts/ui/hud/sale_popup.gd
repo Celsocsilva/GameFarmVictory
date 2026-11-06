@@ -4,9 +4,9 @@ class_name SalePopup
 ## "+6  2 caixas". Não bloqueia o jogo: entra com um pulo, sobe e some sozinho.
 
 const CASH_ICON := preload("res://assets/currency/cash_bundle_official.png")
-const ICON_RECT := Rect2(22, 12, 136, 92)
-const AMOUNT_RECT := Rect2(160, 8, 190, 99)
-const DETAIL_RECT := Rect2(345, 8, 172, 99)
+const ICON_RECT := Rect2(34, 24, 136, 92)
+const AMOUNT_RECT := Rect2(172, 20, 190, 99)
+const DETAIL_RECT := Rect2(357, 20, 172, 99)
 const MONEY_GREEN := Color(0.2, 0.48, 0.05)
 ## Tempo total na tela.
 @export var lifetime := 1.8
@@ -26,6 +26,7 @@ func _ready() -> void:
 
 func setup(money: int, crates: int) -> void:
     amount_label.text = "+" + UiStyle.format_int(money)
+    UiStyle.fit_font(amount_label, 58)
     detail_label.text = "%d %s" % [crates, "caixa" if crates == 1 else "caixas"]
 
 func get_text() -> String:

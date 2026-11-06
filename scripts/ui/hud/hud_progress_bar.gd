@@ -5,6 +5,7 @@ class_name HudProgressBar
 
 const FILL_GREEN := preload("res://assets/ui/components/bar_progress_fill_green.png")
 const FILL_BLUE := preload("res://assets/ui/components/bar_progress_fill_blue.png")
+const FILL_PAD := 12.0
 
 @export var use_blue := false
 @export var label_font_size := 32
@@ -32,7 +33,14 @@ func _ready() -> void:
     _fill = TextureProgressBar.new()
     _fill.name = "Fill"
     _fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _fill.texture_progress = FILL_BLUE if use_blue else FILL_GREEN
+    # Os PNGs v5 têm 12 px de margem transparente de segurança; a barra usa só a
+    # área visível (AtlasTexture), sem alterar o arquivo, para o preenchimento
+    # ocupar a altura do trilho.
+    var source: Texture2D = FILL_BLUE if use_blue else FILL_GREEN
+    var visible_fill := AtlasTexture.new()
+    visible_fill.atlas = source
+    visible_fill.region = Rect2(Vector2(FILL_PAD, FILL_PAD), source.get_size() - Vector2(FILL_PAD, FILL_PAD) * 2.0)
+    _fill.texture_progress = visible_fill
     _fill.nine_patch_stretch = true
     # Margens = metade da altura do PNG (cápsula), para as pontas não esticarem.
     var margin := int(_fill.texture_progress.get_height() * 0.5)
@@ -83,3 +91,4 @@ func _refresh() -> void:
     # Abaixo das pontas arredondadas o nine-patch ficaria deformado: esconde.
     _fill.visible = _fill.size.x * get_ratio() >= _fill.size.y * 0.9
     _label.text = UiStyle.format_ratio(mini(_value, _maximum), _maximum)
+    UiStyle.fit_font(_label, label_font_size)

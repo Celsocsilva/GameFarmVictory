@@ -2,7 +2,7 @@ extends Control
 class_name InfoBanner
 ## Faixa de mensagens (floral_info_panel_bg.png), por exemplo "Mochila cheia!".
 
-const TEXT_RECT := Rect2(150, 48, 771, 154)
+const TEXT_RECT := Rect2(162, 60, 771, 154)
 
 @onready var message_label: Label = $MessageLabel
 

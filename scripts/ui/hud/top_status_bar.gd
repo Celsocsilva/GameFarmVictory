@@ -3,10 +3,10 @@ class_name TopStatusBar
 ## Barra superior (hud_top_status_bar_bg.png): estrela de nível + dinheiro,
 ## tomates e caixas. Os ícones fazem parte do PNG; os valores são Labels.
 
-const LEVEL_RECT := Rect2(22, 38, 120, 96)
-const MONEY_RECT := Rect2(312, 62, 180, 66)
-const TOMATO_RECT := Rect2(682, 62, 202, 66)
-const CRATE_RECT := Rect2(1087, 63, 203, 65)
+const LEVEL_RECT := Rect2(34, 50, 120, 96)
+const MONEY_RECT := Rect2(324, 74, 180, 66)
+const TOMATO_RECT := Rect2(694, 74, 202, 66)
+const CRATE_RECT := Rect2(1099, 75, 203, 65)
 
 @onready var level_label: Label = $LevelLabel
 @onready var money_label: Label = $MoneyLabel
@@ -25,9 +25,12 @@ func set_level(level: int) -> void:
 
 func set_money(value: int) -> void:
     money_label.text = UiStyle.format_int(value)
+    UiStyle.fit_font(money_label, 48)
 
 func set_tomatoes(value: int, maximum: int) -> void:
     tomato_label.text = UiStyle.format_ratio(value, maximum)
+    UiStyle.fit_font(tomato_label, 48)
 
 func set_crates(value: int, maximum: int) -> void:
     crate_label.text = UiStyle.format_ratio(value, maximum)
+    UiStyle.fit_font(crate_label, 48)

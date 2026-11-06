@@ -4,11 +4,11 @@
 [ext_resource type="Texture2D" path="res://assets/ui/hud/floral_info_panel_bg.png" id="2_bg"]
 
 [node name="InfoBanner" type="Control"]
-custom_minimum_size = Vector2(1071, 250)
+custom_minimum_size = Vector2(1095, 274)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1071.0
-offset_bottom = 250.0
+offset_right = 1095.0
+offset_bottom = 274.0
 mouse_filter = 2
 script = ExtResource("1_script")
 
@@ -26,10 +26,10 @@ stretch_mode = 5
 
 [node name="MessageLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 150.0
-offset_top = 48.0
-offset_right = 921.0
-offset_bottom = 202.0
+offset_left = 162.0
+offset_top = 60.0
+offset_right = 933.0
+offset_bottom = 214.0
 mouse_filter = 2
 text = ""
 horizontal_alignment = 1

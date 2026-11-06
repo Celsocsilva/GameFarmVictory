@@ -1,3 +1,30 @@
+# TerraBela Farm — UI Kit v5 (Claude Code)
+
+## Correções obrigatórias sobre o pacote v4
+
+Este pacote **substitui integralmente a v4**. Os oito arquivos sinalizados pelo usuário foram reconstruídos a partir de seus elementos completos na prancha original; não reutilizar os PNGs v4. `pill_small_cream`, `pill_medium_cream`, `panel_tabbed_small` e `button_round_green` foram anteriormente cortados de coordenadas incorretas. `panel_reward_popup` agora é isolado sem pedaços de componentes vizinhos.
+
+Os botões `button_cta_green_large`, `button_cta_orange_large` e `button_cta_blue_large` tiveram a **largura visível ampliada em 30%**, preservando o formato das extremidades; não esticar mais 130% dentro da engine. O redimensionamento final para diferentes telas deve ser responsivo.
+
+### Instruções ao Claude Code
+
+1. Identifique primeiro as cenas de HUD atuais e preserve seus dados, sinais, navegação e estados.
+2. Substitua as imagens antigas pelos PNGs homônimos em `assets/ui/components/`. Não usar recortes de folhas de sprites em runtime.
+3. O maço verde de dinheiro com faixa branca continua sendo o ícone oficial: `assets/currency/cash_bundle_official.png`.
+4. Todos os números, valores monetários, percentuais, texto dos botões, progresso de tomate e caixas, textos de missão e mensagens de recompensa devem ser renderizados pelo Godot (`Label`, `RichTextLabel`, `TextureProgressBar` etc.). **Jamais transformar valores do jogo em pixels do asset.**
+5. Para botões, use `TextureButton`/`Button` com `TextureRect` e `Label` como nós filhos quando apropriado. Para painéis redimensionáveis, evite distorção: defina margens de 9-patch adequadas ao formato ou use composição Control para manter cantos intactos.
+6. A imagem `panel_reward_popup.png` é um fundo decorativo inteiro e independente. Não deve conter botões ou abas vazando da prancha.
+7. Faça o teste de abertura e fechamento do popup, hover/pressed/disabled dos CTAs e atualização dinâmica dos contadores.
+8. Crie cena de inspeção `UIAssetQA.tscn` exibindo **todos os oito PNGs** isolados sobre fundo contrastante, sem cortes ou sobreposição. Inclua uma segunda cena com os valores injetados via engine.
+9. Valide resoluções 720×1280, 1080×1920 e desktop da demo. Documente capturas reais do jogo (não usar a prévia do pacote como prova de execução).
+10. Execute testes de importação e de runtime existentes, reportando resultados com evidências e sem declarar sucesso em testes não executados.
+
+### Observações
+
+Os PNGs v5 possuem canal alpha e uma borda transparente de segurança. As bordas visuais não devem ser aparadas manualmente. `docs/QA_UI_v5.json` traz dimensões reais e a checagem dos arquivos.
+
+---
+
 # TerraBela Farm — Prompt para Claude Code (UI Refatorada v4)
 
 Atue como uma equipe formada por UI Engineer, Technical Artist, Godot Engineer e QA Engineer.

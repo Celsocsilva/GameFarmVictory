@@ -36,6 +36,23 @@ static func style_label(label: Label, font_size: int, color: Color = TEXT_BROWN,
     label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+## Reduz a fonte até o texto caber na largura do Label (ex.: "9.999.999" no
+## contador de dinheiro). Nunca aumenta acima de `max_size`.
+static func fit_font(label: Label, max_size: int, min_size: int = 10) -> void:
+    var available := label.size.x - 4.0
+    if available <= 0.0:
+        return
+    var current_font := label.get_theme_font("font")
+    var font_size := max_size
+    while font_size > min_size and current_font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > available:
+        font_size -= 1
+    label.add_theme_font_size_override("font_size", font_size)
+
+## Largura do texto no tamanho atual (para testes de truncamento).
+static func text_width(label: Label) -> float:
+    var font_size := label.get_theme_font_size("font_size")
+    return label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+
 ## Coloca um Label (ou qualquer Control) num retângulo em pixels do PNG de fundo.
 static func place(control: Control, rect: Rect2) -> void:
     control.position = rect.position

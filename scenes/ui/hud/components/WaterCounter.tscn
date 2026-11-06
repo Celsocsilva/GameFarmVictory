@@ -4,15 +4,15 @@
 [ext_resource type="Texture2D" path="res://assets/ui/hud/hud_counter_water_bg.png" id="2_bg"]
 
 [node name="WaterCounter" type="Control"]
-custom_minimum_size = Vector2(270, 131)
+custom_minimum_size = Vector2(294, 155)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 270.0
-offset_bottom = 131.0
+offset_right = 294.0
+offset_bottom = 155.0
 mouse_filter = 2
 script = ExtResource("1_script")
 background = ExtResource("2_bg")
-value_rect = Rect2(110, 41, 134, 52)
+value_rect = Rect2(122, 53, 134, 52)
 placeholder_text = "0"
 
 [node name="Background" type="TextureRect" parent="."]
@@ -29,10 +29,10 @@ stretch_mode = 5
 
 [node name="ValueLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 110.0
-offset_top = 41.0
-offset_right = 244.0
-offset_bottom = 93.0
+offset_left = 122
+offset_top = 53
+offset_right = 256
+offset_bottom = 105
 mouse_filter = 2
 text = "0"
 horizontal_alignment = 1

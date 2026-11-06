@@ -2,7 +2,7 @@ extends TextureButton
 class_name StoreButton
 ## Botão da loja (icon_store.png) com o rótulo "Loja" desenhado pela engine.
 
-const LABEL_RECT := Rect2(20, 168, 218, 56)
+const LABEL_RECT := Rect2(32, 180, 218, 56)
 
 @onready var caption: Label = $Caption
 

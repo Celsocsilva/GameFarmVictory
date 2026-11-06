@@ -132,17 +132,24 @@ func _run() -> void:
     if hud.get_banner_message() != "Loja em breve!":
         return _fail("loja")
 
-    # 9. QA de assets: só PNGs do pacote UI-004; dinheiro = maço oficial;
+    # 9. QA de assets: só PNGs do pacote UI v5; dinheiro = maço oficial;
     # nenhuma imagem de referência; nenhum PNG cortado ou distorcido.
     hud.reward_popup.show_reward("Recompensa!", "Missão concluída!", 25)
-    hud.show_sale_popup(6, 2)
+    var probe := hud.show_sale_popup(6, 2)
     await create_timer(0.5).timeout
+    # Retângulo visível real do aviso (inclui escala em torno do centro).
+    var probe_rect := probe.get_global_transform() * Rect2(Vector2.ZERO, probe.size)
+    if not Rect2(Vector2.ZERO, hud.root_control.size).encloses(probe_rect):
+        return _fail("aviso de venda sai da tela: %s" % probe_rect)
     var checked := _check_textures(hud.root_control)
     if _failed:
         return
     if checked < 15:
         return _fail("poucas texturas verificadas: %d" % checked)
-    # 10. Todos os componentes dentro da tela em paisagem e retrato (lógico 1280 x 2275).
+    # 10. Todos os componentes dentro da tela, sem cobrir o joystick nem o centro
+    # da tela (fazendeiro/canteiro). 720x1280 e 1080x1920 dão a mesma área lógica
+    # 1280 x 2275 (expand); desktop 1280x720 e 1920x1080 dão 1280 x 720.
+    var joystick := world.get_node("HUD/VirtualJoystick") as Control
     for screen in [Vector2(1280, 720), Vector2(1280, 2275), Vector2(1600, 720)]:
         hud.layout_for(screen)
         var bounds := Rect2(Vector2.ZERO, screen)
@@ -150,16 +157,120 @@ func _run() -> void:
             var r := (control as Control).get_global_rect()
             if not bounds.encloses(r):
                 return _fail("%s fora da tela %s: %s" % [control.name, screen, r])
+        var popup_zone := Rect2(hud.sale_popups.global_position, FarmHUD.SALE_POPUP_SCENE_SIZE * FarmHUD.SALE_POPUP_SCALE * (FarmHUD.PORTRAIT_BOOST if screen.y > screen.x else 1.0) * Vector2(1, 2.1))
+        if popup_zone.intersects(hud.info_banner.get_global_rect()) or not bounds.encloses(popup_zone):
+            return _fail("avisos de venda sobre a faixa ou fora da tela em %s" % screen)
         if hud.level_panel.get_global_rect().intersects(hud.money_counter.get_global_rect()) or hud.mission_panel.get_global_rect().intersects(hud.info_banner.get_global_rect()):
             return _fail("sobreposição em %s" % screen)
+        var joystick_rect := Rect2(Vector2(28, screen.y - 250), joystick.size)
+        var center := Rect2(screen * 0.5 - Vector2(220, 100), Vector2(440, 200))
+        for control in [hud.level_panel, hud.mission_panel, hud.money_counter, hud.tomato_counter, hud.crate_counter, hud.store_button, hud.info_banner]:
+            var r := (control as Control).get_global_rect()
+            if r.intersects(joystick_rect) or r.intersects(center):
+                return _fail("%s cobre joystick/centro em %s" % [control.name, screen])
     hud.layout()
     var viewport_rect := Rect2(Vector2.ZERO, hud.root_control.size)
     var card := hud.reward_popup.card.get_global_rect()
     if not viewport_rect.encloses(card):
         return _fail("popup fora da tela: %s em %s" % [card, viewport_rect])
     print("HUD_QA textures=%d layouts=3 card=%s" % [checked, card])
+    await _qa_v5(world)
+    if _failed:
+        return
     print("HUD_SMOKE_OK")
     quit(0)
+
+## Testes do prompt de QA UI v5: valores extremos, atualização única, sem
+## crédito duplicado e estados dos CTAs.
+func _qa_v5(world: FarmWorld) -> void:
+    var hud := world.hud
+    var wallet := world.wallet
+    var inventory := world.harvest_inventory
+    # Dinheiro: 0, 1, 999, 1.250 e 9.999.999 sem truncar.
+    for pair in [[0, "0"], [1, "1"], [999, "999"], [1250, "1.250"], [9999999, "9.999.999"]]:
+        wallet.set_balance(pair[0])
+        var label := hud.money_counter.get_value_label()
+        if hud.get_money_text() != pair[1] or UiStyle.text_width(label) > label.size.x:
+            return _fail("dinheiro %s: '%s' largura %.0f/%.0f" % [pair[1], hud.get_money_text(), UiStyle.text_width(label), label.size.x])
+        print("QA_MONEY %s font=%d width=%.0f/%.0f" % [pair[1], label.get_theme_font_size("font_size"), UiStyle.text_width(label), label.size.x])
+    # Tomates 0/56, 18/56, 56/56 e caixas 0/7, 3/7, 7/7 pela mochila real.
+    for pair in [[0, "0/56", "0/7"], [18, "18/56", "3/7"], [56, "56/56", "7/7"]]:
+        inventory.set_amount(&"tomato", pair[0])
+        var tomato := hud.tomato_counter.get_value_label()
+        var crate := hud.crate_counter.get_value_label()
+        if hud.get_tomato_text() != pair[1] or hud.get_crate_text() != pair[2] or UiStyle.text_width(tomato) > tomato.size.x or UiStyle.text_width(crate) > crate.size.x:
+            return _fail("mochila %s: %s %s" % [pair[0], hud.get_tomato_text(), hud.get_crate_text()])
+        print("QA_BACKPACK %s %s" % [pair[1], pair[2]])
+    if hud.reward_popup.is_open:
+        hud.reward_popup.collect()
+    inventory.set_amount(&"tomato", 0)
+    # Uma atualização do contador por mudança; nenhuma quando o valor não muda.
+    wallet.set_balance(100)
+    var updates := hud.money_counter.update_count
+    wallet.add(5, &"qa")
+    if hud.money_counter.update_count != updates + 1:
+        return _fail("contador atualizou %d vezes" % (hud.money_counter.update_count - updates))
+    wallet.add(0, &"qa")
+    hud.refresh()
+    if hud.money_counter.update_count != updates + 1:
+        return _fail("atualização sem mudança de valor")
+    # Abrir o popup não cria dinheiro; coletar várias vezes credita uma vez só.
+    var tracker := world.mission_tracker
+    var before := wallet.get_balance()
+    hud.reward_popup.show_reward("Recompensa!", "Teste", 50)
+    if wallet.get_balance() != before:
+        return _fail("abrir popup criou dinheiro")
+    hud.reward_popup.collect()
+    await create_timer(0.3).timeout
+    tracker.add_progress(int(MissionTracker.MISSIONS[tracker.index]["kind"]), 100000)
+    var reward := int(tracker.get_current()["reward"])
+    before = wallet.get_balance()
+    hud.reward_popup.collect_button.pressed.emit()
+    hud.reward_popup.collect_button.pressed.emit()
+    hud.reward_popup.collect()
+    if wallet.get_balance() != before + reward:
+        return _fail("crédito duplicado: %d -> %d (prêmio %d)" % [before, wallet.get_balance(), reward])
+    print("QA_SIGNALS single_update=ok reward_once=%d" % reward)
+    # CTA: tamanho proporcional ao PNG v5 (sem fator extra de 1,3) e estados.
+    await create_timer(0.4).timeout
+    var scene := load("res://scenes/ui/hud/components/CtaButton.tscn") as PackedScene
+    var cta := scene.instantiate() as CtaButton
+    hud.root_control.add_child(cta)
+    cta.position = Vector2(400, 300)
+    cta.color = "orange"
+    cta.text = "Comprar"
+    cta.fit_height(86)
+    await process_frame
+    var tex := cta.texture_normal
+    var png_aspect := float(tex.get_width()) / float(tex.get_height())
+    if tex.get_width() != 606 or cta.stretch_mode != TextureButton.STRETCH_KEEP_ASPECT_CENTERED or absf(png_aspect - cta.size.x / cta.size.y) > 0.01:
+        return _fail("CTA laranja %s aspecto %.2f" % [tex.get_size(), png_aspect])
+    var states := []
+    states.append(cta.get_state_name())
+    # Sinais que a Godot emite com mouse/toque reais.
+    cta.mouse_entered.emit()
+    states.append(cta.get_state_name())
+    var hover_tint := cta.self_modulate
+    cta.button_down.emit()
+    states.append(cta.get_state_name())
+    var pressed_tint := cta.self_modulate
+    var pressed_scale := cta.scale.x
+    cta.button_up.emit()
+    cta.mouse_exited.emit()
+    if hover_tint == Color.WHITE or pressed_tint == hover_tint or pressed_scale >= 1.0:
+        return _fail("CTA sem diferença visual em hover/pressed")
+    cta.grab_focus()
+    await process_frame
+    states.append(cta.get_state_name())
+    var focus_visible := cta.focus_ring.visible
+    cta.set_enabled(false)
+    states.append(cta.get_state_name())
+    print("QA_CTA states=%s focus_ring=%s" % [states, focus_visible])
+    if states[0] != "normal" or not states[1].begins_with("hover") or not states[2].begins_with("pressed") or not states[3].ends_with("+focus") or states[4] != "disabled" or not focus_visible:
+        return _fail("estados do CTA: %s" % [states])
+    if cta.self_modulate == Color.WHITE:
+        return _fail("CTA desabilitado sem diferença visual")
+    cta.queue_free()
 
 func _check_textures(node: Node) -> int:
     var count := 0
@@ -182,13 +293,18 @@ func _check_textures(node: Node) -> int:
         return count
     var path := texture.resource_path
     if texture is AtlasTexture:
-        # Recorte de exibição do popup: a região tem de conter o cartão inteiro.
+        # Só a margem transparente de segurança pode ficar fora da região exibida.
         var atlas := texture as AtlasTexture
         path = atlas.atlas.resource_path
-        var full := Rect2(Vector2.ZERO, atlas.atlas.get_size())
-        if not full.encloses(atlas.region) or atlas.region.end.y != full.end.y or atlas.region.size.x != full.size.x:
-            _fail("região do popup corta o cartão: %s" % atlas.region)
-            return count
+        var image := atlas.atlas.get_image()
+        if image.is_compressed():
+            image.decompress()
+        var region := Rect2i(atlas.region)
+        for y in image.get_height():
+            for x in image.get_width():
+                if not region.has_point(Vector2i(x, y)) and image.get_pixel(x, y).a > 0.02:
+                    _fail("região de %s corta pixel visível (%d, %d)" % [path, x, y])
+                    return count
     if path.contains("reference") or path == "res://assets/sales/money_bundle.png":
         _fail("textura proibida: " + path)
         return count

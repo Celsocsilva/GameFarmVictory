@@ -4,15 +4,15 @@
 [ext_resource type="Texture2D" path="res://assets/ui/hud/hud_counter_coin_bg.png" id="2_bg"]
 
 [node name="CoinCounter" type="Control"]
-custom_minimum_size = Vector2(276, 131)
+custom_minimum_size = Vector2(300, 155)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 276.0
-offset_bottom = 131.0
+offset_right = 300.0
+offset_bottom = 155.0
 mouse_filter = 2
 script = ExtResource("1_script")
 background = ExtResource("2_bg")
-value_rect = Rect2(122, 41, 127, 52)
+value_rect = Rect2(134, 53, 127, 52)
 placeholder_text = "0"
 
 [node name="Background" type="TextureRect" parent="."]
@@ -29,10 +29,10 @@ stretch_mode = 5
 
 [node name="ValueLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 122.0
-offset_top = 41.0
-offset_right = 249.0
-offset_bottom = 93.0
+offset_left = 134
+offset_top = 53
+offset_right = 261
+offset_bottom = 105
 mouse_filter = 2
 text = "0"
 horizontal_alignment = 1

@@ -13,6 +13,8 @@ signal store_pressed()
 
 const SALE_POPUP_SCENE := preload("res://scenes/ui/hud/components/SalePopup.tscn")
 const MARGIN := 16.0
+## Tamanho do SalePopup.tscn (field_input_wide.png v5).
+const SALE_POPUP_SCENE_SIZE := Vector2(559, 139)
 const GAP := 10.0
 const LEVEL_SCALE := 0.42
 const MISSION_SCALE := 0.46
@@ -76,6 +78,20 @@ func refresh() -> void:
         _on_mission_changed(missions.get_current())
         mission_panel.set_progress(missions.progress, missions.get_target())
 
+## API direta (prompt UI v5). No jogo os valores chegam pelos sinais de Wallet
+## e HarvestInventory; estes métodos servem para preview e testes.
+func set_money(value: int) -> void:
+    money_counter.set_value(value)
+
+func set_tomatoes(current: int, maximum: int) -> void:
+    tomato_counter.set_ratio(current, maximum)
+
+func set_crates(current: int, maximum: int) -> void:
+    crate_counter.set_ratio(current, maximum)
+
+func set_mission(title: String, current: int, target: int) -> void:
+    mission_panel.set_mission_progress(title, current, target)
+
 func get_money_text() -> String:
     return money_counter.get_value_text()
 
@@ -130,14 +146,20 @@ func layout_for(area: Vector2) -> void:
     info_banner.scale = Vector2.ONE * BANNER_SCALE * k
     var banner_size := info_banner.size * BANNER_SCALE * k
     var banner_left := MARGIN + mission_panel.size.x * MISSION_SCALE * k + GAP
-    var banner_x := clampf((area.x - banner_size.x) * 0.5, banner_left, maxf(banner_left, area.x - MARGIN - banner_size.x))
-    info_banner.position = Vector2(banner_x, counters_bottom + GAP)
+    if k > 1.0:
+        # Retrato: faixa embaixo do painel de missão, à esquerda (há espaço vertical).
+        info_banner.position = Vector2(MARGIN, mission_panel.position.y + mission_panel.size.y * MISSION_SCALE * k + GAP)
+    else:
+        var banner_x := clampf((area.x - banner_size.x) * 0.5, banner_left, maxf(banner_left, area.x - MARGIN - banner_size.x))
+        info_banner.position = Vector2(banner_x, counters_bottom + GAP)
 
     store_button.scale = Vector2.ONE * STORE_SCALE * k
     var store_size := store_button.size * STORE_SCALE * k
     store_button.position = area - store_size - Vector2(MARGIN, MARGIN)
 
-    sale_popups.position = Vector2(money_counter.position.x, counters_bottom + GAP)
+    # Avisos de venda alinhados à direita, embaixo dos contadores, fora da faixa.
+    var popup_width := SALE_POPUP_SCENE_SIZE.x * SALE_POPUP_SCALE * k
+    sale_popups.position = Vector2(area.x - MARGIN - popup_width, counters_bottom + GAP)
 
 func _on_balance_changed(balance: int, _delta: int) -> void:
     money_counter.set_value(balance)
@@ -162,8 +184,10 @@ func show_sale_popup(money: int, crates: int) -> SalePopup:
     sale_popups.add_child(popup)
     popup.setup(money, crates)
     var stacked := get_active_sale_popups().size() - 1
-    popup.position = Vector2(0.0, stacked * popup.size.y * SALE_POPUP_SCALE * _ui_scale * 1.05)
-    popup.play(SALE_POPUP_SCALE * _ui_scale)
+    var popup_scale := SALE_POPUP_SCALE * _ui_scale
+    # play() escala em torno do centro: compensa para a borda visível começar em (0, y).
+    popup.position = Vector2(0.0, stacked * popup.size.y * popup_scale * 1.05) - popup.size * (1.0 - popup_scale) * 0.5
+    popup.play(popup_scale)
     return popup
 
 func _on_level_changed(level: int, xp: int, xp_to_next: int) -> void:
