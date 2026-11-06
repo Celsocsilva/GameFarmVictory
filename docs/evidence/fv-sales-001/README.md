@@ -52,3 +52,22 @@ O teste confere: nome e largura, descarga só encostado, 4 mochilas inteiras no 
 - Camada de maços: 6 cm (espessura do maço na nova arte). `sales_counter_smoke` confere a base (8 cantos arredondados, altura ≤ 10 cm, cobre as 15 posições, cor de madeira clara) e a transparência do sprite.
 
 O fazendeiro ainda não recolhe o dinheiro da base; o saldo já fica disponível em `MoneyStack.spend()` para a próxima etapa.
+
+## FV-SALES-002 — base compacta, coleta do dinheiro e caixas pulando para o balcão
+
+- **Base compacta**: cada posição da grade 3 × 5 tem exatamente o tamanho do maço no chão (1,26 × 0,96 m), sem vão entre pilhas; o bloco de madeira tem só 10 cm de borda (3,97 × 5,00 m).
+- **Coleta**: ao tocar uma pilha (corpo do fazendeiro sobre ela, folga de 0,45 m), a pilha esvazia e o valor entra na carteira (`scripts/economy/wallet.gd`), que é o saldo mostrado no HUD ("Dinheiro: $ N"). Alguns maços sobem até o fazendeiro como efeito. A carteira tem `can_afford()`/`spend()` para as compras futuras (ferramentas, recursos, aceleração) e `set_balance()` para save. Novas vendas enchem primeiro as pilhas vazias.
+- **Caixas do balcão**: mesma arte das caixas da mochila (`crate_full.png`; a última caixa incompleta usa `crate_empty.png`), viradas para a câmera como na mochila. Cada coluna tem 2 caixas, uma na frente da outra (fileiras a 1,0 m, dentro do tampo de 2,25 m), e as camadas sobem apoiadas na borda da caixa de baixo. O rebordo do lado dos clientes baixou para 35 cm para não esconder as caixas.
+- **Descarga animada**: cada caixa nova pula das mãos do fazendeiro em arco (0,42 s, 1,6 m de altura, uma a cada 0,09 s), cresce até o tamanho da pilha e só aparece no balcão ao pousar, com um leve achatamento.
+
+Saída do teste (`sales_counter_smoke`):
+
+```
+COUNTER_CRATES art=crate_full rows=2 back_z=21.00 front_z=22.00 depth=2.25
+CRATE_JUMP crates=4 from_hands=(1.0, 1.1, 19.225) peak=2.26 above_ends=1.16 land_time=0.55s staggered=[1, 2, 3, 4]
+MONEY_COMPACT cell=(1.258, 0.959036) gap=0.000 base=3.97x5.00 margin=0.10
+MONEY_COLLECT slot7=2 all=30 wallet_after_spend=20 hud=Dinheiro: $ 20
+SALES_SMOKE_OK width=8.50 blocked=5 base=3x5 sales=5 money=33
+```
+
+Capturas novas: [caixas pulando das mãos](01b-caixas-pulando-das-maos.png), [caixas pousadas](01c-caixas-pousadas-no-balcao.png), [fazendeiro recolhendo](06-fazendeiro-recolhendo-dinheiro.png), [pilhas recolhidas e saldo no HUD](07-pilhas-recolhidas-saldo-no-hud.png).

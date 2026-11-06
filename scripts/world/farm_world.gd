@@ -20,6 +20,9 @@ const HARVEST_CONTROLLER_SCRIPT := preload("res://scripts/farming/harvest_contro
 const BACKPACK_CRATES_SCRIPT := preload("res://scripts/player/backpack_crates.gd")
 const SALES_COUNTER_SCRIPT := preload("res://scripts/farming/sales_counter.gd")
 const MONEY_STACK_SCRIPT := preload("res://scripts/economy/money_stack.gd")
+const WALLET_SCRIPT := preload("res://scripts/economy/wallet.gd")
+## Mãos do fazendeiro (frente é -Z local): de onde as caixas pulam para o balcão.
+const HANDS_OFFSET := Vector3(0.0, 1.1, -0.55)
 const SALES_CONTROLLER_SCRIPT := preload("res://scripts/commerce/sales_controller.gd")
 const CUSTOMER_QUEUE_SCRIPT := preload("res://scripts/customers/customer_queue.gd")
 
@@ -61,6 +64,8 @@ var harvest_controller: HarvestController
 var backpack: BackpackCrates
 var sales_counter: SalesCounter
 var money_stack: MoneyStack
+## Saldo recolhido das pilhas de dinheiro (HUD); para compras futuras.
+var wallet: Wallet
 var sales_controller: SalesController
 var customer_queue: CustomerQueue
 ## cell_id -> CropPlant, para a colheita localizar a planta de cada célula.
@@ -91,7 +96,12 @@ func _process(delta: float) -> void:
     if planting_grid and farmer:
         planting_grid.process_farmer_position(farmer.global_position, delta)
     if sales_counter and farmer:
-        sales_counter.process_farmer_position(farmer.global_position)
+        sales_counter.process_farmer_position(farmer.global_position, get_farmer_hands_position())
+    if money_stack and farmer:
+        money_stack.collect_at(farmer.global_position, wallet)
+
+func get_farmer_hands_position() -> Vector3:
+    return farmer.global_transform * HANDS_OFFSET
 
 ## Balcão de vendas no rodapé do mapa, fila de clientes atrás dele (+Z) e a
 ## base de dinheiro 3 x 5 ao lado, no lado do fazendeiro (-Z).
@@ -118,6 +128,9 @@ func _build_sales_counter() -> void:
     sales_controller.name = "SalesController"
     add_child(sales_controller)
     sales_controller.setup(customer_queue, sales_counter, money_stack)
+    wallet = WALLET_SCRIPT.new() as Wallet
+    wallet.name = "Wallet"
+    add_child(wallet)
 
 ## Meia largura (X) de todas as tiras juntas, centradas em x = 0.
 func get_planting_area_half_width() -> float:
@@ -409,8 +422,8 @@ func _build_hud() -> void:
     money_label.add_theme_color_override("font_color", Color(0.72, 1.0, 0.35))
     money_label.add_theme_color_override("font_outline_color", Color(0.05, 0.16, 0.04))
     layer.add_child(money_label)
-    money_stack.balance_changed.connect(_update_money_label)
-    _update_money_label(money_stack.get_balance(), 0)
+    wallet.balance_changed.connect(_update_money_label)
+    _update_money_label(wallet.get_balance(), 0)
 
 func _update_money_label(balance: int, _delta: int) -> void:
     if money_label:

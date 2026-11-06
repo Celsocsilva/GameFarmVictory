@@ -44,7 +44,7 @@ func _check_soil(world: FarmWorld) -> void:
     # Ciclo da planta com o dobro do tempo (30 s -> 60 s) em todas as fases.
     _check(is_equal_approx(CropPlant.new().growth_duration, 60.0), "Ciclo da planta deve durar 60 s")
     # Dinheiro 1,7x e base fora da plantação.
-    _check(is_equal_approx(MoneyStack.CELL_SIZE.x, 0.82 * 1.7) and is_equal_approx(MoneyStack.BUNDLE_WIDTH, 0.74 * 1.7), "Maços de dinheiro 1,7x")
+    _check(is_equal_approx(MoneyStack.CELL_SIZE.x, MoneyStack.BUNDLE_WIDTH) and is_equal_approx(MoneyStack.BUNDLE_WIDTH, 0.74 * 1.7), "Maços de dinheiro 1,7x")
     var base_half := MoneyStack.get_base_size() * 0.5
     var money_left := world.money_stack.global_position.x - base_half.x
     _check(money_left > world.get_planting_area_half_width(), "Base de dinheiro não pode invadir a plantação")
