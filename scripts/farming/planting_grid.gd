@@ -17,7 +17,8 @@ const STATE_HARVESTED := "HARVESTED"
 ## Máximo de covas semeadas por passo (a do pé + as da frente).
 @export_range(1, 6, 1) var seeds_per_step: int = 4
 @export var columns: int = 3
-@export var rows_per_module: int = 7
+## 9 fileiras: mantém ~1,5 m entre covas na tira 1,7x maior.
+@export var rows_per_module: int = 9
 @export var row_spacing: float = 2.1
 @export var test_mode: bool = true
 

@@ -26,7 +26,7 @@ const BARRIER_HEIGHT := 0.7
 
 @export_range(0, 48, 1) var initial_displayed_crates: int = 0
 ## Recuado da cerca para caber a fila dupla de 7 clientes do lado +Z.
-@export_range(1.0, 16.0, 0.1) var foot_inset: float = 11.5
+@export_range(1.0, 16.0, 0.1) var foot_inset: float = 10.5
 ## Distância máxima entre o fazendeiro e a borda do balcão para descarregar.
 @export_range(0.5, 5.0, 0.1) var deposit_reach: float = 1.3
 @export_range(1, 64, 1) var units_per_crate: int = 8

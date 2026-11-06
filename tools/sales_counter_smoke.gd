@@ -77,8 +77,8 @@ func _run() -> void:
     var money := world.money_stack
     if MoneyStack.COLUMNS != 3 or MoneyStack.ROWS != 5 or MoneyStack.SLOTS != 15:
         return _fail("base não é 3 x 5")
-    var base_far_z := money.global_position.z + MoneyStack.ROWS * MoneyStack.CELL_SIZE.y * 0.5 + 0.12
-    var base_near_x := money.global_position.x - MoneyStack.COLUMNS * MoneyStack.CELL_SIZE.x * 0.5 - 0.12
+    var base_far_z := money.global_position.z + MoneyStack.ROWS * MoneyStack.CELL_SIZE.y * 0.5 + MoneyStack.BASE_MARGIN
+    var base_near_x := money.global_position.x - MoneyStack.COLUMNS * MoneyStack.CELL_SIZE.x * 0.5 - MoneyStack.BASE_MARGIN
     if base_far_z >= counter.global_position.z or base_near_x <= counter.global_position.x + half.x:
         return _fail("base de dinheiro fora do lado do fazendeiro")
     # Bloco fino de madeira clara, cantos arredondados, sob toda a grade 3 x 5.

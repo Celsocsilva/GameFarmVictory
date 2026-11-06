@@ -397,7 +397,7 @@ func _test_reload_mid_flight() -> void:
     _check(restored["state"] == PlantingGrid.STATE_RIPE, "Reload: célula em voo salva como RIPE")
     _check(int(restored["remaining_yield"]) == expected_remaining, "Reload: frutos não confirmados continuam na planta (%d)" % expected_remaining)
     _initial_total = saved_total + _remaining_total()
-    _check(_initial_total == 63 * 6, "Reload: nenhuma unidade criada ou perdida")
+    _check(_initial_total == world.planting_grid.cells.size() * 6, "Reload: nenhuma unidade criada ou perdida")
     print("RELOAD_OK saved_total=", saved_total, " remaining_on_plant=", expected_remaining)
 
 func _test_approach_from_all_sides() -> void:

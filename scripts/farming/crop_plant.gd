@@ -6,7 +6,8 @@ signal ready_for_harvest(cell_id: String)
 
 @export var cell_id: String = ""
 @export var accelerated_test_mode: bool = true
-@export var growth_duration: float = 30.0
+## Ciclo completo (broto -> pronto); dobrado de 30 s para 60 s.
+@export var growth_duration: float = 60.0
 @export var cell_width: float = 1.15
 ## Largura máxima visível da planta em relação à célula. Acima de 1.0 a copa
 ## invade levemente a célula vizinha, como em jogos de fazenda cozy.

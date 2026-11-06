@@ -36,6 +36,19 @@ func _check_soil(world: FarmWorld) -> void:
     _check(Vector2i(soil.get_size()) == SOIL_TEXTURE_SIZE, "Textura do solo deve ser a nova arte 466x912")
     var plots := world.get_node("PlantingArea").get_children()
     _check(plots.size() == FarmWorld.PLANTING_PLOT_COUNT, "Quantidade de canteiros")
+    # Área 1,7x a da versão anterior (tiras de 3,8 m de largura), mesma proporção.
+    var plot_area := world.planting_plot_size.x * world.planting_plot_size.y
+    var legacy_width := 3.8
+    var legacy_area := legacy_width * legacy_width * world.planting_plot_size.y / world.planting_plot_size.x
+    _check(absf(plot_area / legacy_area - 1.7) < 0.01, "Área de plantio deve ser 1,7x (obtido %.3f)" % (plot_area / legacy_area))
+    # Ciclo da planta com o dobro do tempo (30 s -> 60 s) em todas as fases.
+    _check(is_equal_approx(CropPlant.new().growth_duration, 60.0), "Ciclo da planta deve durar 60 s")
+    # Dinheiro 1,7x e base fora da plantação.
+    _check(is_equal_approx(MoneyStack.CELL_SIZE.x, 0.82 * 1.7) and is_equal_approx(MoneyStack.BUNDLE_WIDTH, 0.74 * 1.7), "Maços de dinheiro 1,7x")
+    var base_half := MoneyStack.get_base_size() * 0.5
+    var money_left := world.money_stack.global_position.x - base_half.x
+    _check(money_left > world.get_planting_area_half_width(), "Base de dinheiro não pode invadir a plantação")
+    print("AREA_CYCLE_MONEY_OK area_ratio=", snappedf(plot_area / legacy_area, 0.001), " cycle=60s money_cell=", MoneyStack.CELL_SIZE)
     var visual := plots[0].get_node("PlowedSoil") as MeshInstance3D
     var quad := visual.mesh as QuadMesh
     var aspect := quad.size.y / quad.size.x
@@ -116,7 +129,9 @@ func _check_crop_sizes(world: FarmWorld) -> void:
     # planted_at = 0 congela o crescimento automático durante a inspeção.
     crop.initialize(cell["id"], 0.0)
     # Referência: dimensionamento antigo (PNG inteiro 1254 px, 0.9 da célula).
-    var legacy_pixel_size := minf(1.8 / 1254.0, cell_width * 0.9 / 1254.0)
+    # Referência na célula original (antes da área 1,7x), para medir só o ganho do sprite.
+    var legacy_cell_width := cell_width / FarmWorld.PLANTING_LINEAR_SCALE
+    var legacy_pixel_size := minf(1.8 / 1254.0, legacy_cell_width * 0.9 / 1254.0)
     var previous_height := 0.0
     var report := []
     for stage in CropPlant.STAGES.size():
