@@ -17,11 +17,12 @@ const ICON_TOMATO := preload("res://assets/ui/icons/icon_tomato.png")
 const ICON_CRATE := preload("res://assets/ui/icons/icon_crate_full.png")
 const ICON_CASH := preload("res://assets/currency/cash_bundle_official.png")
 
-## Missões base. Metas e prêmios são multiplicados por (rodada + 1).
+## Missões base. Metas: ProgressionConfig.mission_target() (multiplicador de
+## dificuldade) vezes (rodada + 1). Prêmios: valor base vezes (rodada + 1).
 const MISSIONS := [
-    {"id": &"harvest_tomatoes", "title": "Colher tomates", "kind": Kind.HARVEST_TOMATOES, "target": 56, "reward": 10, "xp": 10},
-    {"id": &"sell_crates", "title": "Vender caixas", "kind": Kind.SELL_CRATES, "target": 7, "reward": 15, "xp": 15},
-    {"id": &"collect_money", "title": "Recolher dinheiro", "kind": Kind.COLLECT_MONEY, "target": 30, "reward": 20, "xp": 20},
+    {"id": &"harvest_tomatoes", "title": "Colher tomates", "kind": Kind.HARVEST_TOMATOES, "target": ProgressionConfig.BASE_TARGET_HARVEST_TOMATOES, "reward": 10, "xp": 10},
+    {"id": &"sell_crates", "title": "Vender caixas", "kind": Kind.SELL_CRATES, "target": ProgressionConfig.BASE_TARGET_SELL_CRATES, "reward": 15, "xp": 15},
+    {"id": &"collect_money", "title": "Recolher dinheiro", "kind": Kind.COLLECT_MONEY, "target": ProgressionConfig.BASE_TARGET_COLLECT_MONEY, "reward": 20, "xp": 20},
 ]
 
 var index := 0
@@ -48,7 +49,7 @@ func setup(inventory: HarvestInventory, sales: SalesController, wallet: Wallet, 
 func get_current() -> Dictionary:
     var base: Dictionary = MISSIONS[index]
     var mission := base.duplicate()
-    mission["target"] = int(base["target"]) * (round_number + 1)
+    mission["target"] = ProgressionConfig.mission_target(int(base["target"])) * (round_number + 1)
     mission["reward"] = int(base["reward"]) * (round_number + 1)
     mission["xp"] = int(base["xp"]) * (round_number + 1)
     mission["icon"] = icon_for(base["kind"])

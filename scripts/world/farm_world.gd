@@ -412,7 +412,7 @@ func _build_hud() -> void:
     mission_tracker.setup(harvest_inventory, sales_controller, wallet, player_level)
 
 func _on_sale_completed_xp(_customer: Customer, _crates: int, units: int, _money: int) -> void:
-    player_level.add_xp(units)
+    player_level.add_xp(units * ProgressionConfig.XP_PER_TOMATO_SOLD)
 
 func _material(color: Color) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()

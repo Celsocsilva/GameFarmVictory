@@ -63,14 +63,27 @@ func _run() -> void:
     if UiStyle.format_int(0) != "0" or UiStyle.format_int(999) != "999" or UiStyle.format_int(1000000) != "1.000.000":
         return _fail("format_int")
 
-    # 5. Missão 1 (colher 56): progresso pela mochila, popup de recompensa ao concluir.
+    # 5. Missão 1 (colher 56 x dificuldade): progresso pela mochila; o popup de
+    # recompensa só abre ao atingir a meta inteira (6 mochilas cheias).
     var missions := world.mission_tracker
     var panel := hud.mission_panel
-    if panel.get_title() != "Colher tomates" or panel.get_progress_text() != "18/56":
+    var harvest_goal := ProgressionConfig.mission_target(ProgressionConfig.BASE_TARGET_HARVEST_TOMATOES)
+    if ProgressionConfig.DIFFICULTY_MULTIPLIER < 6 or harvest_goal != 336:
+        return _fail("dificuldade abaixo de 6x: meta %d" % harvest_goal)
+    if panel.get_title() != "Colher tomates" or panel.get_progress_text() != "18/%d" % harvest_goal:
         return _fail("missão colher: %s %s" % [panel.get_title(), panel.get_progress_text()])
     inventory.set_amount(&"tomato", 56)
     if not hud.get_banner_message().contains("Mochila cheia"):
         return _fail("aviso de mochila cheia")
+    if missions.completed or hud.reward_popup.is_open:
+        return _fail("missão concluída com só 56 de %d" % harvest_goal)
+    var fills := 1
+    while not missions.completed and fills < 20:
+        inventory.set_amount(&"tomato", 0)
+        inventory.set_amount(&"tomato", 56)
+        fills += 1
+    if fills != 6:
+        return _fail("missão colher concluída com %d mochilas (esperado 6)" % fills)
     if not missions.completed or not hud.reward_popup.is_open or not hud.reward_popup.visible:
         return _fail("missão concluída sem popup")
     if hud.reward_popup.value_label.text != "10" or hud.reward_popup.value_icon.texture.resource_path != OFFICIAL_CASH:
@@ -80,12 +93,12 @@ func _run() -> void:
     hud.reward_popup.collect_button.pressed.emit()
     if wallet.get_balance() != balance_before + 10 or wallet.history[wallet.history.size() - 1]["source"] != &"mission":
         return _fail("prêmio não entrou na carteira")
-    if hud.get_money_text() != "1.260" or panel.get_title() != "Vender caixas" or panel.get_progress_text() != "0/7":
+    if hud.get_money_text() != "1.260" or panel.get_title() != "Vender caixas" or panel.get_progress_text() != "0/%d" % ProgressionConfig.mission_target(ProgressionConfig.BASE_TARGET_SELL_CRATES):
         return _fail("após coletar: %s %s %s" % [hud.get_money_text(), panel.get_title(), panel.get_progress_text()])
     await create_timer(0.4).timeout
     if hud.reward_popup.visible:
         return _fail("popup não saiu")
-    if world.player_level.xp != 10 or hud.level_panel.xp_bar.get_label_text() != "10/40":
+    if world.player_level.xp != 10 or hud.level_panel.xp_bar.get_label_text() != "10/%d" % ProgressionConfig.xp_for_level(1):
         return _fail("xp da missão: %d %s" % [world.player_level.xp, hud.level_panel.xp_bar.get_label_text()])
     print("HUD_MISSION reward=10 wallet=%s next=%s" % [hud.get_money_text(), panel.get_title()])
 
@@ -110,7 +123,7 @@ func _run() -> void:
     var expected := "+%d %d %s" % [sale["money"], sale["crates"], "caixa" if sale["crates"] == 1 else "caixas"]
     if popups[0].get_text() != expected or popups[0].icon_rect.texture.resource_path != OFFICIAL_CASH:
         return _fail("aviso de venda: '%s' esperado '%s'" % [popups[0].get_text(), expected])
-    if panel.get_progress_text() != "%d/7" % sale["crates"]:
+    if panel.get_progress_text() != "%d/%d" % [sale["crates"], ProgressionConfig.mission_target(ProgressionConfig.BASE_TARGET_SELL_CRATES)]:
         return _fail("missão vender: %s" % panel.get_progress_text())
     if world.player_level.xp != 10 + int(sale["units"]):
         return _fail("xp da venda: %d" % world.player_level.xp)
@@ -123,11 +136,31 @@ func _run() -> void:
         return _fail("aviso de venda não sumiu")
 
     # 7. Nível sobe e o painel acompanha.
-    world.player_level.add_xp(200)
+    # 6x: o nível 1 pede 240 XP (antes 40) e o nível 2, 360 (antes 60).
+    if ProgressionConfig.xp_for_level(1) != 240 or ProgressionConfig.xp_for_level(2) != 360:
+        return _fail("xp por nível sem 6x: %d %d" % [ProgressionConfig.xp_for_level(1), ProgressionConfig.xp_for_level(2)])
+    world.player_level.add_xp(239 - world.player_level.xp)
+    if world.player_level.level != 1:
+        return _fail("subiu de nível antes de 240 XP")
+    world.player_level.add_xp(1 + 360)
     if hud.level_panel.level_label.text != str(world.player_level.level) or world.player_level.level < 3:
         return _fail("nível: %s" % hud.level_panel.level_label.text)
 
-    # 8. Loja: botão responde com aviso temporário.
+    # 8. Loja: novo ícone (sem tomates), nome por Label traduzido e aviso temporário.
+    var store_tex := hud.store_button.texture_normal as AtlasTexture
+    if store_tex == null or store_tex.atlas.resource_path != "res://assets/ui/icons/icon_store_shop.png" or ResourceLoader.exists("res://assets/ui/icons/icon_store.png"):
+        return _fail("ícone da loja: %s" % [hud.store_button.texture_normal])
+    if hud.store_button.size != Vector2(282, 245) or hud.store_button.stretch_mode != TextureButton.STRETCH_KEEP_ASPECT_CENTERED:
+        return _fail("tamanho funcional da loja: %s" % hud.store_button.size)
+    for pair in [["pt_BR", "Loja"], ["es", "Tienda"], ["en", "Shop"], ["pt_BR", "Loja"]]:
+        TranslationServer.set_locale(pair[0])
+        await process_frame
+        var caption := hud.store_button.caption
+        var shown := hud.store_button.get_display_text()
+        var width := caption.get_theme_font("font").get_string_size(shown, HORIZONTAL_ALIGNMENT_LEFT, -1, caption.get_theme_font_size("font_size")).x
+        if shown != pair[1] or caption.text != "STORE_LABEL" or width > caption.size.x:
+            return _fail("rótulo da loja em %s: '%s' (largura %.0f/%.0f)" % [pair[0], shown, width, caption.size.x])
+        print("STORE_LABEL %s=%s font=%d" % [pair[0], shown, caption.get_theme_font_size("font_size")])
     hud.store_button.pressed.emit()
     if hud.get_banner_message() != "Loja em breve!":
         return _fail("loja")
