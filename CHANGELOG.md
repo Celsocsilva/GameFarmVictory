@@ -8,3 +8,5 @@
 - FV-SALES-001: bancada de descarga renomeada para Balcão de vendas, com largura dobrada (8,5 m), colisão e cercas laterais; clientes compram 1-3 caixas sorteadas a 3 dinheiros por caixa; dinheiro empilhado numa base 3 x 5 ao lado do balcão e saldo no HUD.
 - UI-004: HUD da fazenda com os PNGs individuais do pacote UI v4 (contadores de dinheiro, tomates e caixas, painel de nível, missão, popup de recompensa, aviso de venda, botão da loja e faixa de mensagens); todos os números são Labels da engine, o dinheiro usa o maço oficial e os estados vêm da Wallet, da mochila e das vendas.
 - UI v5: PNGs da v5 no lugar da v4 (margem transparente, CTAs 30% mais largos, popup de recompensa isolado), componente CtaButton com estados, cena UIAssetQA, auditoria tools/ui_asset_audit.gd e textos que se ajustam até 9.999.999.
+- Progressão 6x mais lenta (ProgressionConfig.DIFFICULTY_MULTIPLIER): XP por nível e metas das missões multiplicados por 6.
+- Novo ícone da loja (icon_store_shop.png) com o nome em Label traduzido (Loja / Tienda / Shop); ícone antigo com tomates removido.

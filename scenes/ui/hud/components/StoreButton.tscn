@@ -1,25 +1,28 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud/store_button.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/ui/icons/icon_store.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/icon_store_shop.png" id="2_icon"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_store"]
+atlas = ExtResource("2_icon")
+region = Rect2(180, 0, 1172, 1024)
 
 [node name="StoreButton" type="TextureButton"]
 custom_minimum_size = Vector2(282, 245)
 offset_right = 282.0
 offset_bottom = 245.0
-texture_normal = ExtResource("2_icon")
+texture_normal = SubResource("AtlasTexture_store")
 ignore_texture_size = true
 stretch_mode = 5
 script = ExtResource("1_script")
 
 [node name="Caption" type="Label" parent="."]
 layout_mode = 0
-offset_left = 32.0
-offset_top = 180.0
-offset_right = 250.0
-offset_bottom = 236.0
+offset_left = 18.0
+offset_top = 175.0
+offset_right = 264.0
+offset_bottom = 227.0
 mouse_filter = 2
-text = "Loja"
+text = "STORE_LABEL"
 horizontal_alignment = 1
 vertical_alignment = 1
-

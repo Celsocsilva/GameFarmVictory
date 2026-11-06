@@ -28,6 +28,10 @@ func _run() -> void:
         await _capture_qa(out_dir)
         quit()
         return
+    if prefix.begins_with("store"):
+        await _capture_store(out_dir, prefix)
+        quit()
+        return
     var window_size := DisplayServer.window_get_size()
     var requested := window_size
     var parts := prefix.split("x")
@@ -115,6 +119,39 @@ func _run() -> void:
         await create_timer(0.6).timeout
         await _shot(out_dir, "%s-06-preview-componentes.png" % prefix)
     quit()
+
+## Botão da loja na cena real nos três idiomas: tela inteira e recorte ampliado.
+## prefix "store" (janela paisagem) ou "store-retrato" (janela retrato, expand).
+func _capture_store(out_dir: String, prefix: String) -> void:
+    var window_size := DisplayServer.window_get_size()
+    if window_size.y > window_size.x:
+        root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+    var world := (load("res://scenes/world/farm_world.tscn") as PackedScene).instantiate() as FarmWorld
+    root.add_child(world)
+    world.harvest_controller.enabled = false
+    world.customer_queue.set_process(false)
+    world.sales_controller.set_process(false)
+    await create_timer(0.8).timeout
+    var tag := "paisagem" if window_size.x > window_size.y else "retrato"
+    for locale in ["pt_BR", "es", "en"]:
+        TranslationServer.set_locale(locale)
+        await create_timer(0.3).timeout
+        var store := world.hud.store_button
+        print("CAPTURE_STORE %s text=%s rect=%s" % [locale, store.get_display_text(), store.get_global_rect()])
+        await _shot(out_dir, "loja-%s-%s.png" % [tag, locale])
+        var image := root.get_texture().get_image()
+        var scale_px := Vector2(image.get_size()) / root.get_visible_rect().size
+        var visual := store.get_global_transform() * Rect2(Vector2.ZERO, store.size)
+        var crop := Rect2i(Rect2(visual.position * scale_px - Vector2(16, 16), visual.size * scale_px + Vector2(32, 32))).intersection(Rect2i(Vector2i.ZERO, image.get_size()))
+        var detail := image.get_region(crop)
+        detail.resize(detail.get_width() * 3, detail.get_height() * 3, Image.INTERPOLATE_LANCZOS)
+        detail.save_png(out_dir.path_join("loja-%s-%s-zoom.png" % [tag, locale]))
+    TranslationServer.set_locale("pt_BR")
+    # Clique real no botão: mostra o aviso.
+    world.hud.store_button.pressed.emit()
+    await create_timer(0.3).timeout
+    print("CAPTURE_STORE_CLICK banner=%s" % world.hud.get_banner_message())
+    await _shot(out_dir, "loja-%s-clique.png" % tag)
 
 ## Tela de inspeção dos PNGs: página 1 (oito componentes corrigidos + CTAs) nos
 ## três fundos, páginas 2 e 3 no xadrez.

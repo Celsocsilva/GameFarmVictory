@@ -1,21 +1,19 @@
 extends Node
 class_name PlayerLevel
-## Nível e experiência do fazendeiro (UI-004). Regra inicial, ajustável:
-## cada tomate vendido no balcão vale 1 XP; o nível N pede
-## base_xp + step_xp * (N - 1) XP para subir.
+## Nível e experiência do fazendeiro. Cada tomate vendido no balcão vale
+## ProgressionConfig.XP_PER_TOMATO_SOLD XP; o XP pedido por nível vem de
+## ProgressionConfig.xp_for_level() (com o multiplicador de dificuldade).
 
 signal changed(level: int, xp: int, xp_to_next: int)
 signal leveled_up(level: int)
 
-@export_range(1, 1000, 1) var base_xp: int = 40
-@export_range(0, 1000, 1) var step_xp: int = 20
 
 var level := 1
 var xp := 0
 
 func xp_to_next(for_level: int = -1) -> int:
     var target_level := level if for_level < 1 else for_level
-    return base_xp + step_xp * (target_level - 1)
+    return ProgressionConfig.xp_for_level(target_level)
 
 func add_xp(amount: int) -> void:
     if amount <= 0:
