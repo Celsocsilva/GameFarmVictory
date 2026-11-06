@@ -154,7 +154,7 @@ func _build_hud() -> void:
     layer.add_child(joystick)
     farmer.joystick_path = NodePath("../HUD/VirtualJoystick")
     var label := Label.new()
-    label.text = "Farm Victory  |  Joystick touchscreen / setas para teste"
+    label.text = "TerraBela Farm  |  Joystick touchscreen / setas para teste"
     label.position = Vector2(24, 22)
     layer.add_child(label)
 

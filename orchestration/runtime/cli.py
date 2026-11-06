@@ -3,7 +3,7 @@ import argparse, json
 from .orchestrator import Orchestrator
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Farm Victory assisted orchestration runtime")
+    parser = argparse.ArgumentParser(description="TerraBela Farm assisted orchestration runtime")
     parser.add_argument("--root", default=".")
     sub = parser.add_subparsers(dest="command", required=True)
     create = sub.add_parser("create")

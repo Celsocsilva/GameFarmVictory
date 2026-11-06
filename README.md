@@ -1,6 +1,6 @@
-# Farm Victory
+# TerraBela Farm
 
-Farm Victory é um jogo casual mobile nativo de fazenda e gerenciamento, com câmera isométrica ou perspectiva elevada fixa, estética 2.5D e elementos 3D estilizados. O jogador cultiva, colhe, transporta e vende produtos enquanto expande sua propriedade.
+TerraBela Farm é um jogo casual mobile nativo de fazenda e gerenciamento, com câmera isométrica ou perspectiva elevada fixa, estética 2.5D e elementos 3D estilizados. O jogador cultiva, colhe, transporta e vende produtos enquanto expande sua propriedade.
 
 Este repositório é a base de reconstrução do projeto na Godot Engine. A prioridade é Android, mantendo compatibilidade arquitetural com iOS desde o início. O produto não será desenvolvido como site, PWA, aplicação HTML5 ou WebView.
 
@@ -131,7 +131,14 @@ O slice só será considerado funcional quando, em um Android real:
 
 ## Git e contribuição
 
-O repositório oficial é [github.com/Celsocsilva/GameFarmVictory](https://github.com/Celsocsilva/GameFarmVictory). O histórico existente deve ser preservado.
+## Informações oficiais
+
+- Nome: TerraBela Farm
+- Diretório: `TerraBelaFarm`
+- Repositório: [github.com/Celsocsilva/TerraBelaFarm](https://github.com/Celsocsilva/TerraBelaFarm)
+- Website oficial: [https://terrabelafarm.com](https://terrabelafarm.com)
+
+O histórico existente deve ser preservado.
 
 Branches recomendadas:
 
@@ -155,8 +162,8 @@ Pré-requisitos planejados:
 Clone o repositório e confira o estado:
 
 ```powershell
-git clone https://github.com/Celsocsilva/GameFarmVictory.git
-cd GameFarmVictory
+git clone https://github.com/Celsocsilva/TerraBelaFarm.git
+cd TerraBelaFarm
 git status
 ```
 

@@ -12,4 +12,4 @@ script = ExtResource("1_main")
 [node name="Status" type="Label" parent="UI"]
 offset_left = 32.0
 offset_top = 28.0
-text = "Farm Victory — fundação mobile"
+text = "TerraBela Farm — fundação mobile"

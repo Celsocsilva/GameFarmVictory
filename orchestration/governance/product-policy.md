@@ -1,6 +1,6 @@
 # Product policy
 
-- Produto: jogo mobile nativo Farm Victory na Godot 4.7.2 Standard.
+- Produto: jogo mobile nativo TerraBela Farm na Godot 4.7.2 Standard.
 - Android é prioritário; iOS deve permanecer viável; Web não é alvo.
 - Loop aprovado: plantar, crescer, colher, transportar até sete caixas, descarregar em bancada sem cobertura com quatro posições, vender a clientes externos e recolher dinheiro dentro da fazenda.
 - Mudanças de escopo, economia, arte aprovada ou critérios de aceite exigem aprovação do Product Owner.

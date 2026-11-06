@@ -1,6 +1,6 @@
 # Padrão operacional dos agentes
 
-Todo agente do Farm Victory é uma unidade operacional de engenharia, não apenas uma função. Cada arquivo deve declarar:
+Todo agente do TerraBela Farm é uma unidade operacional de engenharia, não apenas uma função. Cada arquivo deve declarar:
 
 1. Identidade e missão.
 2. Competências obrigatórias.
