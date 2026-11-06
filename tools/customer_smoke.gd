@@ -26,7 +26,8 @@ func _run() -> void:
     world.harvest_controller.enabled = false
     var queue := world.customer_queue
     queue.set_process(false)
-    var depot := world.tomato_depot
+    world.sales_controller.set_process(false)
+    var depot := world.sales_counter
     var edge := world.farm_size * 0.5
 
     # 1. Layout: bancada recuada, entre o canteiro e a fila; 14 lugares dentro da cerca.

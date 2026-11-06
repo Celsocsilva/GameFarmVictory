@@ -18,7 +18,9 @@ const SOIL_TEXTURE := preload("res://assets/textures/soil/plowed_soil_three_furr
 const HARVEST_INVENTORY_SCRIPT := preload("res://scripts/farming/harvest_inventory.gd")
 const HARVEST_CONTROLLER_SCRIPT := preload("res://scripts/farming/harvest_controller.gd")
 const BACKPACK_CRATES_SCRIPT := preload("res://scripts/player/backpack_crates.gd")
-const TOMATO_DEPOT_SCRIPT := preload("res://scripts/farming/tomato_depot.gd")
+const SALES_COUNTER_SCRIPT := preload("res://scripts/farming/sales_counter.gd")
+const MONEY_STACK_SCRIPT := preload("res://scripts/economy/money_stack.gd")
+const SALES_CONTROLLER_SCRIPT := preload("res://scripts/commerce/sales_controller.gd")
 const CUSTOMER_QUEUE_SCRIPT := preload("res://scripts/customers/customer_queue.gd")
 
 ## Mochila nas costas do fazendeiro (a frente do fazendeiro é -Z local).
@@ -50,11 +52,14 @@ var planting_grid: PlantingGrid
 var harvest_inventory: HarvestInventory
 var harvest_controller: HarvestController
 var backpack: BackpackCrates
-var tomato_depot: TomatoDepot
+var sales_counter: SalesCounter
+var money_stack: MoneyStack
+var sales_controller: SalesController
 var customer_queue: CustomerQueue
 ## cell_id -> CropPlant, para a colheita localizar a planta de cada célula.
 var crops: Dictionary = {}
 var harvest_label: Label
+var money_label: Label
 
 func _ready() -> void:
     var texture_size := SOIL_TEXTURE.get_size()
@@ -68,7 +73,7 @@ func _ready() -> void:
     _build_obstacles()
     _build_camera()
     _build_harvest()
-    _build_tomato_depot()
+    _build_sales_counter()
     _build_hud()
     _prewarm_seed_throw()
     camera_focus = farmer.global_position
@@ -78,19 +83,31 @@ func _process(delta: float) -> void:
         _update_camera_focus(delta)
     if planting_grid and farmer:
         planting_grid.process_farmer_position(farmer.global_position, delta)
-    if tomato_depot and farmer:
-        tomato_depot.process_farmer_position(farmer.global_position)
+    if sales_counter and farmer:
+        sales_counter.process_farmer_position(farmer.global_position)
 
-func _build_tomato_depot() -> void:
-    tomato_depot = TOMATO_DEPOT_SCRIPT.new() as TomatoDepot
-    tomato_depot.name = "TomatoDepot"
-    add_child(tomato_depot)
-    tomato_depot.place_at_map_foot(farm_size)
-    tomato_depot.setup(harvest_inventory)
+## Balcão de vendas no rodapé do mapa, fila de clientes atrás dele (+Z) e a
+## base de dinheiro 3 x 5 ao lado, no lado do fazendeiro (-Z).
+func _build_sales_counter() -> void:
+    sales_counter = SALES_COUNTER_SCRIPT.new() as SalesCounter
+    sales_counter.name = "SalesCounter"
+    add_child(sales_counter)
+    sales_counter.place_at_map_foot(farm_size)
+    sales_counter.setup(harvest_inventory)
     customer_queue = CUSTOMER_QUEUE_SCRIPT.new() as CustomerQueue
     customer_queue.name = "CustomerQueue"
     add_child(customer_queue)
-    customer_queue.setup(tomato_depot, farm_size * 0.5)
+    customer_queue.setup(sales_counter, farm_size * 0.5)
+    money_stack = MONEY_STACK_SCRIPT.new() as MoneyStack
+    money_stack.name = "MoneyStack"
+    add_child(money_stack)
+    var counter_half := sales_counter.get_half_extents()
+    var base_half := Vector2(MoneyStack.COLUMNS * MoneyStack.CELL_SIZE.x + 0.24, MoneyStack.ROWS * MoneyStack.CELL_SIZE.y + 0.24) * 0.5
+    money_stack.position = sales_counter.position + Vector3(counter_half.x + 0.35 + base_half.x, 0.0, -0.4 - base_half.y)
+    sales_controller = SALES_CONTROLLER_SCRIPT.new() as SalesController
+    sales_controller.name = "SalesController"
+    add_child(sales_controller)
+    sales_controller.setup(customer_queue, sales_counter, money_stack)
 
 func _build_planting_grid() -> void:
     planting_grid = PLANTING_GRID_SCRIPT.new()
@@ -173,7 +190,7 @@ func _update_harvest_label(_item: StringName = &"", _amount: int = 0) -> void:
         return
     var total := harvest_inventory.get_total()
     if harvest_inventory.is_full():
-        harvest_label.text = "Mochila cheia (%d/%d)! Leve as caixas ao depósito no rodapé do mapa." % [total, harvest_inventory.get_capacity()]
+        harvest_label.text = "Mochila cheia (%d/%d)! Leve as caixas ao Balcão de vendas no rodapé do mapa." % [total, harvest_inventory.get_capacity()]
         harvest_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35))
     else:
         harvest_label.text = "Tomates: %d/%d   Caixas: %d/%d" % [total, harvest_inventory.get_capacity(), harvest_inventory.get_crate_count(), harvest_inventory.max_crates]
@@ -370,6 +387,20 @@ func _build_hud() -> void:
     layer.add_child(harvest_label)
     harvest_inventory.amount_changed.connect(_update_harvest_label)
     _update_harvest_label()
+    money_label = Label.new()
+    money_label.name = "MoneyLabel"
+    money_label.position = Vector2(24, 84)
+    money_label.add_theme_font_size_override("font_size", 22)
+    money_label.add_theme_constant_override("outline_size", 6)
+    money_label.add_theme_color_override("font_color", Color(0.72, 1.0, 0.35))
+    money_label.add_theme_color_override("font_outline_color", Color(0.05, 0.16, 0.04))
+    layer.add_child(money_label)
+    money_stack.balance_changed.connect(_update_money_label)
+    _update_money_label(money_stack.get_balance(), 0)
+
+func _update_money_label(balance: int, _delta: int) -> void:
+    if money_label:
+        money_label.text = "Dinheiro: $ %d" % balance
 
 func _material(color: Color) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()

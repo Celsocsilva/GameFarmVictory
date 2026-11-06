@@ -61,6 +61,42 @@ static func create(scheme_index: int) -> Customer:
     template.free()
     return customer
 
+## Caixas compradas no balcão, levadas à frente do corpo (frente é -Z local).
+func carry_crates(count: int) -> void:
+    var old := get_node_or_null("CarriedCrates")
+    if old:
+        old.free()
+    if count <= 0:
+        return
+    var holder := Node3D.new()
+    holder.name = "CarriedCrates"
+    holder.position = Vector3(0.0, 0.9, -0.68)
+    add_child(holder)
+    var wood := StandardMaterial3D.new()
+    wood.albedo_color = Color(0.58, 0.32, 0.12)
+    var tomato := StandardMaterial3D.new()
+    tomato.albedo_color = Color(0.82, 0.10, 0.055)
+    var box := BoxMesh.new()
+    box.size = Vector3(0.62, 0.24, 0.46)
+    var fruit := BoxMesh.new()
+    fruit.size = Vector3(0.52, 0.06, 0.36)
+    for index in count:
+        var crate := MeshInstance3D.new()
+        crate.name = "Crate_%d" % index
+        crate.mesh = box
+        crate.material_override = wood
+        crate.position.y = index * 0.27
+        holder.add_child(crate)
+        var top := MeshInstance3D.new()
+        top.mesh = fruit
+        top.material_override = tomato
+        top.position.y = 0.14
+        crate.add_child(top)
+
+func get_carried_crates() -> int:
+    var holder := get_node_or_null("CarriedCrates")
+    return holder.get_child_count() if holder else 0
+
 func get_body_color() -> Color:
     return COLOR_SCHEMES[color_scheme_index]["body"]
 
