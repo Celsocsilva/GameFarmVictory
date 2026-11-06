@@ -38,13 +38,21 @@ func _check_soil(world: FarmWorld) -> void:
     var visual := plots[0].get_node("PlowedSoil") as MeshInstance3D
     var quad := visual.mesh as QuadMesh
     var aspect := quad.size.y / quad.size.x
-    var expected := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x) * FarmWorld.PLANTING_VISIBLE_WIDTH_RATIO
-    _check(absf(aspect - expected) < 0.01, "Quad do solo não pode distorcer a textura")
+    var expected := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x) * FarmWorld.PLANTING_VISIBLE_WIDTH_RATIO * FarmWorld.PLANTING_LENGTH_STRETCH
+    _check(absf(aspect - expected) < 0.01, "Quad do solo deve seguir a arte compensada pela câmera")
+    # Na tela, a tira deve aparecer na proporção da arte (compensação = inclinação real da câmera).
+    var pitch := rad_to_deg(atan2(world.camera_height, world.camera_distance))
+    _check(absf(pitch - FarmWorld.PLANTING_VIEW_PITCH_DEGREES) < 0.5, "Compensação do comprimento deve casar com a inclinação da câmera")
+    var on_screen_aspect := aspect * sin(deg_to_rad(pitch))
+    var art_aspect := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x) * FarmWorld.PLANTING_VISIBLE_WIDTH_RATIO
+    _check(absf(on_screen_aspect - art_aspect) < 0.02, "Tira não pode parecer comprimida na tela")
     print("SOIL_OK texture=", soil.get_size(), " quad=", quad.size)
 
 func _check_grid(world: FarmWorld) -> void:
     var grid := world.planting_grid
-    _check(grid.cells.size() == 72, "Esperado 4 módulos x 3 sulcos x 6 fileiras")
+    var expected_cells := FarmWorld.PLANTING_PLOT_COUNT * grid.columns * grid.rows_per_module
+    _check(FarmWorld.PLANTING_PLOT_COUNT == 3, "Área de tomate deve ter 3 tiras")
+    _check(grid.cells.size() == expected_cells, "Esperado %d tiras x %d sulcos x %d fileiras" % [FarmWorld.PLANTING_PLOT_COUNT, grid.columns, grid.rows_per_module])
     var front: Dictionary = {}
     var back: Dictionary = {}
     for cell in grid.cells.values():

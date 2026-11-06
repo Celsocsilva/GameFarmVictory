@@ -25,11 +25,13 @@ func _capture_fields() -> void:
     await _load_world()
     await _frames(20)
     _save("01-soil-empty")
+    await _save_overview("01b-soil-overview")
 
     # Um estágio por canteiro + estágio final nas fileiras da frente: mostra o ciclo inteiro.
     _plant_stages()
     await _frames(30)
     _save("02-growth-stages")
+    await _save_overview("02b-growth-stages-overview")
 
     await _load_world()
     _plant_all(CropPlant.STAGES.size() - 1)
@@ -76,6 +78,19 @@ func _spawn_crop(cell: Dictionary, stage: int) -> void:
     world.add_child(crop)
     crop.initialize(cell["id"], 0.0)
     crop._update_stage(stage)
+
+## Mesma câmera do jogo, com zoom aberto para mostrar o canteiro inteiro.
+func _save_overview(name: String) -> void:
+    var camera := world.camera
+    var previous_size := camera.size
+    camera.size = 26.0
+    camera.global_position += Vector3(0.0, 0.0, 6.0)
+    world.set_process(false)
+    await _frames(5)
+    _save(name)
+    camera.size = previous_size
+    world.set_process(true)
+    await _frames(5)
 
 func _frames(count: int) -> void:
     for i in count:

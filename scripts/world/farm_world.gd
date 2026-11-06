@@ -18,8 +18,8 @@ const SOIL_TEXTURE := preload("res://assets/textures/soil/plowed_soil_three_furr
 
 const SEED_HAND_OFFSET := Vector3(0.45, 1.15, -0.25)
 
-const PLANTING_PLOT_COUNT := 4
-const PLANTING_COLUMNS := 4
+const PLANTING_PLOT_COUNT := 3
+const PLANTING_COLUMNS := 3
 const PLANTING_ROWS := 1
 const PLANTING_PLOT_WIDTH := 3.8
 # Proporção do PNG aprovado: 466 x 912. A altura é derivada da largura para
@@ -27,10 +27,17 @@ const PLANTING_PLOT_WIDTH := 3.8
 const PLANTING_TEXTURE_ASPECT := 912.0 / 466.0
 # Conteúdo opaco ocupa 443 dos 466 px de largura (margem transparente lateral).
 const PLANTING_VISIBLE_WIDTH_RATIO := 443.0 / 466.0
+# A câmera olha o chão a 45° (camera_height == camera_distance), o que encurta
+# o eixo Z na tela por sin(45°). O comprimento é compensado por 1/sin(45°) para
+# que a tira apareça na proporção da arte, sem aspecto "comprimido".
+const PLANTING_VIEW_PITCH_DEGREES := 45.0
+const PLANTING_LENGTH_STRETCH := 1.0 / sin(deg_to_rad(PLANTING_VIEW_PITCH_DEGREES))
 const PLANTING_PLOT_SIZE := Vector2(
     PLANTING_PLOT_WIDTH,
-    PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT
+    PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT * PLANTING_LENGTH_STRETCH
 )
+# Borda do canteiro mais próxima da casa/fazendeiro; o canteiro cresce para +Z.
+const PLANTING_NEAR_EDGE_Z := 3.3
 # Os módulos são contíguos nos dois eixos: uma área de cultivo é um agrupamento sem vãos.
 # Sobreposição controlada para ocultar qualquer margem transparente residual do PNG.
 const PLANTING_PLOT_SPACING := Vector2(PLANTING_PLOT_WIDTH - 0.35, PLANTING_PLOT_SIZE.y)
@@ -147,7 +154,7 @@ func _build_planting_area() -> void:
         plot.position = Vector3(
             centered_column * PLANTING_PLOT_SPACING.x,
             0.025,
-            7.0 + centered_row * PLANTING_PLOT_SPACING.y
+            PLANTING_NEAR_EDGE_Z + PLANTING_PLOT_SIZE.y * 0.5 + centered_row * PLANTING_PLOT_SPACING.y
         )
         plot.set_meta("plot_index", index)
         plot.set_meta("crop", "tomato")
