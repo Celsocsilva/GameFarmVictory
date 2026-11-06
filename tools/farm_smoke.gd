@@ -86,20 +86,24 @@ func _check_throw_reach(world: FarmWorld) -> void:
     for child in world.get_node("PlantingArea").get_children():
         modules.append(child as Area3D)
     grid.configure(modules)
-    var cell: Dictionary = grid.cells.values()[grid.cells.size() / 2]
-    var cell_position: Vector3 = cell["position"]
-    # Fazendeiro andando em +Z, parado a throw_reach antes da célula: ela deve ser semeada.
-    var farmer_position := cell_position - Vector3(0.0, 0.0, grid.throw_reach)
+    # Fazendeiro em cima da 2ª cova de um sulco, andando em +Z.
+    var start_cell: Dictionary = grid.cells["PlantingPlot_02_r01_c01"]
+    var farmer_position: Vector3 = start_cell["position"]
     grid.process_farmer_position(farmer_position - Vector3(0.0, 0.0, 0.3), 0.0)
     grid.process_farmer_position(farmer_position, 0.4)
     var planted: Array = grid.cells.values().filter(func(c: Dictionary) -> bool: return c["state"] != "EMPTY")
-    _check(planted.size() == 1, "Um punhado por passo")
-    var hit: Vector3 = planted[0]["position"] if planted.size() > 0 else Vector3.INF
-    var distance := Vector2(hit.x - farmer_position.x, hit.z - farmer_position.z).length()
-    _check(distance >= grid.throw_reach - grid.planting_radius, "Semente deve cair longe do pé do fazendeiro")
-    _check(is_equal_approx(grid.throw_reach, 5.1), "Alcance do arremesso deve ser 5,1 m (1,7x os 3,0 m anteriores)")
-    _check(planted.size() > 0 and planted[0]["id"] == cell["id"], "O punhado deve cair na célula/sulco mirado")
-    print("THROW_REACH_OK reach=", grid.throw_reach, " distance=", snappedf(distance, 0.01))
+    var rows := []
+    for cell in planted:
+        _check(cell["module_id"] == "PlantingPlot_02" and cell["column"] == 1, "Faixa deve ficar no sulco da caminhada (%s)" % cell["id"])
+        rows.append(cell["row"])
+    rows.sort()
+    _check(rows == [1, 2, 3, 4], "Deve semear do pé (fileira 1) até 3 plantas à frente (fileira 4), obtido %s" % [rows])
+    # Próximo passo continua a faixa à frente, sem replantar.
+    var next_position: Vector3 = grid.cells["PlantingPlot_02_r02_c01"]["position"]
+    grid.process_farmer_position(next_position, 0.4)
+    _check(grid.cells["PlantingPlot_02_r05_c01"]["state"] != "EMPTY", "Passo seguinte semeia a próxima cova da frente")
+    _check(grid.cells["PlantingPlot_02_r06_c01"]["state"] == "EMPTY", "Não semeia além de 3 plantas à frente")
+    print("SEED_BAND_OK rows=", rows, " ahead=", grid.seed_plants_ahead, " band=", snappedf(grid.get_seed_band_length(), 0.01), "m")
     grid.queue_free()
 
 func _check_crop_sizes(world: FarmWorld) -> void:
