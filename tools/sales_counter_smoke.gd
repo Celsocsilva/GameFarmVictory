@@ -54,6 +54,51 @@ func _run() -> void:
         return _fail("produção inteira: %d unidades, %d caixas" % [counter.get_stored_total(), counter.get_displayed_crates()])
     print("DEPOSIT stored=%d crates=%d" % [counter.get_stored_total(), counter.get_displayed_crates()])
 
+    # 2b. Caixas do balcão = arte das caixas da mochila; 2 fileiras (uma na frente da outra).
+    if counter.get_crate_texture(0) != BackpackCrates.CRATE_FULL_TEXTURE:
+        return _fail("balcão sem a arte das caixas da mochila")
+    var back := counter.get_crate_slot_position(0)
+    var front := counter.get_crate_slot_position(SalesCounter.COLUMNS)
+    if SalesCounter.ROWS_PER_LAYER < 2 or not is_equal_approx(back.x, front.x) or front.z - back.z < 0.9 \
+            or absf(back.z - counter.global_position.z) + SalesCounter.CRATE_SPACING.z * 0.5 > half.y + 0.1:
+        return _fail("2 caixas uma na frente da outra não cabem: trás %s frente %s" % [back, front])
+    counter.set_stored_total(13)
+    if counter.get_crate_texture(1) != BackpackCrates.CRATE_EMPTY_TEXTURE or counter.get_crate_texture(0) != BackpackCrates.CRATE_FULL_TEXTURE:
+        return _fail("caixa incompleta sem a arte parcial")
+    print("COUNTER_CRATES art=crate_full rows=%d back_z=%.2f front_z=%.2f depth=%.2f" % [SalesCounter.ROWS_PER_LAYER, back.z, front.z, half.y * 2.0])
+
+    # 2c. Descarga animada: as caixas pulam das mãos do fazendeiro até a pilha.
+    counter.set_stored_total(0)
+    world.farmer.global_position = counter.global_position + Vector3(1.0, 0.0, -half.y - 0.6)
+    var hands := world.get_farmer_hands_position()
+    inventory.set_amount(&"tomato", 32)
+    counter.process_farmer_position(world.farmer.global_position, hands)
+    if counter.get_displayed_crates() != 4 or counter.get_visible_crate_count() != 0 or counter.get_flying_crate_count() != 4:
+        return _fail("pulo: lógicas %d, visíveis %d, no ar %d" % [counter.get_displayed_crates(), counter.get_visible_crate_count(), counter.get_flying_crate_count()])
+    var peak := -INF
+    var waited := 0.0
+    var landed_order: Array[int] = []
+    while counter.get_flying_crate_count() > 0 and waited < 3.0:
+        var flyer := counter.get_node_or_null("JumpingCrate_00") as Node3D
+        if flyer:
+            peak = maxf(peak, flyer.global_position.y)
+        await process_frame
+        waited += get_root().get_process_delta_time()
+        if counter.get_visible_crate_count() > landed_order.size():
+            landed_order.append(counter.get_visible_crate_count())
+    var log0: Dictionary = counter.jump_log[0]
+    var top_end := maxf((log0["from"] as Vector3).y, (log0["to"] as Vector3).y)
+    if counter.get_flying_crate_count() != 0 or counter.get_visible_crate_count() != 4:
+        return _fail("caixas não pousaram")
+    if not (log0["from"] as Vector3).is_equal_approx(hands) or not (log0["to"] as Vector3).is_equal_approx(counter.get_crate_slot_position(0)):
+        return _fail("pulo não sai das mãos para o lugar da pilha")
+    if peak < top_end + 0.8:
+        return _fail("sem arco de pulo: pico %.2f, ponta %.2f" % [peak, top_end])
+    if landed_order.size() < 2:
+        return _fail("caixas pousaram todas juntas")
+    print("CRATE_JUMP crates=4 from_hands=%s peak=%.2f above_ends=%.2f land_time=%.2fs staggered=%s" % [hands, peak, peak - top_end, waited, landed_order])
+    counter.set_stored_total(224)
+
     # 3. Colisão: o fazendeiro não atravessa o balcão nem passa pelas pontas.
     var farmer := world.farmer
     farmer.set_physics_process(false)
@@ -95,6 +140,16 @@ func _run() -> void:
     if art.get_pixel(1, 1).a > 0.1 or art.get_pixel(art.get_width() / 2, art.get_height() / 2).a < 0.9:
         return _fail("sprite do dinheiro sem transparência")
     print("MONEY_BASE wood=%s size=%.2fx%.2fx%.2f corners=%d art=%s" % [wood, base_size.x, base_size.y, base_size.z, corners.size(), art.get_size()])
+    # Base compacta: pilhas encostadas (posição = tamanho do maço) e borda fina.
+    if not MoneyStack.CELL_SIZE.is_equal_approx(Vector2(MoneyStack.BUNDLE_WIDTH, MoneyStack.BUNDLE_WIDTH * 276.0 / 512.0 * MoneyStack.VIEW_STRETCH)):
+        return _fail("vão entre pilhas: posição %s" % MoneyStack.CELL_SIZE)
+    var art_aspect := float(art.get_height()) / float(art.get_width())
+    if absf(art_aspect - MoneyStack.ART_ASPECT) > 0.005:
+        return _fail("proporção da arte %.3f" % art_aspect)
+    var gap := money.get_slot_position(1).x - money.get_slot_position(0).x - MoneyStack.CELL_SIZE.x
+    if absf(gap) > 0.001 or MoneyStack.BASE_MARGIN > 0.12:
+        return _fail("pilhas afastadas %.3f / borda %.2f" % [gap, MoneyStack.BASE_MARGIN])
+    print("MONEY_COMPACT cell=%s gap=%.3f base=%.2fx%.2f margin=%.2f" % [MoneyStack.CELL_SIZE, gap, base_size.x, base_size.z, MoneyStack.BASE_MARGIN])
     money.add_money(20)
     if money.get_visible_bundles() != 20 or money.get_slot_height(0) != 2 or money.get_slot_height(4) != 2 or money.get_slot_height(5) != 1 or money.get_slot_height(14) != 1:
         return _fail("empilhamento: visíveis %d" % money.get_visible_bundles())
@@ -104,6 +159,32 @@ func _run() -> void:
     money.set_balance(0)
     if money.get_visible_bundles() != 0 or world.money_label.text != "Dinheiro: $ 0":
         return _fail("zerar saldo / HUD: %s" % world.money_label.text)
+
+    # 4b. Tocar uma pilha esvazia só ela e o valor vai para a carteira (HUD).
+    var wallet := world.wallet
+    money.add_money(30)
+    var touch := money.to_global(money.get_slot_position(7))
+    if money.collect_at(money.global_position + Vector3(0.0, 0.0, -20.0), wallet) != 0:
+        return _fail("recolheu de longe")
+    var got := money.collect_at(touch, wallet)
+    if got != 2 or money.get_slot_amount(7) != 0 or money.get_balance() != 28 or wallet.get_balance() != 2 or world.money_label.text != "Dinheiro: $ 2":
+        return _fail("toque na pilha: %d, base %d, carteira %d, HUD %s" % [got, money.get_balance(), wallet.get_balance(), world.money_label.text])
+    if money.collect_at(touch, wallet) != 0:
+        return _fail("pilha vazia recolhida de novo")
+    # Andando por cima de todas as pilhas recolhe tudo.
+    for slot in MoneyStack.SLOTS:
+        money.collect_at(money.to_global(money.get_slot_position(slot)), wallet)
+    if money.get_balance() != 0 or money.get_visible_bundles() != 0 or wallet.get_balance() != 30 or world.money_label.text != "Dinheiro: $ 30":
+        return _fail("recolher tudo: base %d carteira %d" % [money.get_balance(), wallet.get_balance()])
+    # Nova venda volta a empilhar primeiro nas pilhas vazias; o saldo é reutilizável.
+    money.add_money(3)
+    if money.get_slot_height(0) != 1 or money.get_slot_height(2) != 1 or money.get_slot_height(3) != 0:
+        return _fail("reempilhar após recolher")
+    if not wallet.can_afford(30) or wallet.spend(31) or not wallet.spend(10) or wallet.get_balance() != 20:
+        return _fail("gastar saldo")
+    print("MONEY_COLLECT slot7=2 all=30 wallet_after_spend=%d hud=%s" % [wallet.get_balance(), world.money_label.text])
+    money.set_balance(0)
+    wallet.set_balance(0)
 
     # 5. Preço: 1 caixa = 3, proporcional.
     var sales := world.sales_controller

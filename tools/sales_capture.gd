@@ -29,11 +29,21 @@ func _run() -> void:
     # 1. Fazendeiro chegando ao balcão com a mochila cheia (7 caixas).
     world.harvest_inventory.set_amount(&"tomato", 56)
     world.farmer.global_position = counter.global_position + Vector3(-1.5, 0.0, -2.6)
-    world.farmer.rotation.y = 0.0
+    world.farmer.rotation.y = PI
     await _shot(world, focus, out_dir, "01-chegando-com-mochila-cheia.png")
 
+    # 1b. Encostou no balcão: as 7 caixas pulam das mãos para a pilha.
+    world.farmer.global_position = counter.global_position + Vector3(-1.5, 0.0, -counter.get_half_extents().y - 0.6)
+    counter.process_farmer_position(world.farmer.global_position, world.get_farmer_hands_position())
+    await create_timer(0.3).timeout
+    print("CAPTURE_JUMP flying=%d landed=%d" % [counter.get_flying_crate_count(), counter.get_visible_crate_count()])
+    await _shot(world, focus, out_dir, "01b-caixas-pulando-das-maos.png", 0.0, 0)
+    while counter.get_flying_crate_count() > 0:
+        await process_frame
+    await _shot(world, focus, out_dir, "01c-caixas-pousadas-no-balcao.png")
+
     # 2. Toda a produção empilhada no balcão (4 mochilas = 28 caixas).
-    for i in 4:
+    for i in 3:
         world.harvest_inventory.set_amount(&"tomato", 56)
         counter.deposit_from(world.harvest_inventory)
     print("CAPTURE_STOCK units=%d crates=%d" % [counter.get_stored_total(), counter.get_displayed_crates()])
@@ -56,6 +66,19 @@ func _run() -> void:
     print("CAPTURE_MONEY sales=%d balance=%d bundles=%d" % [sales.sales_log.size(), world.money_stack.get_balance(), world.money_stack.get_visible_bundles()])
     await _shot(world, world.money_stack.global_position + Vector3(0.0, 0.0, 0.3), out_dir, "04-dinheiro-na-base-3x5.png", 7.0)
 
+    # 4b. O fazendeiro passa pela primeira fileira: cada pilha tocada esvazia e
+    # o valor entra no saldo do HUD.
+    var money := world.money_stack
+    for slot in [0, 3, 6, 9]:
+        var spot := money.to_global(money.get_slot_position(slot))
+        world.farmer.global_position = Vector3(spot.x, 0.0, spot.z)
+        money.collect_at(world.farmer.global_position, world.wallet)
+    world.farmer.rotation.y = PI
+    print("CAPTURE_COLLECT wallet=%d left_on_base=%d" % [world.wallet.get_balance(), money.get_balance()])
+    await _shot(world, money.global_position + Vector3(0.0, 0.0, 0.3), out_dir, "06-fazendeiro-recolhendo-dinheiro.png", 7.0, 3)
+    await create_timer(0.8).timeout
+    await _shot(world, money.global_position + Vector3(0.0, 0.0, 0.3), out_dir, "07-pilhas-recolhidas-saldo-no-hud.png", 7.0)
+
     # 5. Visão de jogo: canteiro, balcão largo, cercas laterais, fila e base de dinheiro.
     await _shot(world, Vector3(0.0, 0.0, world.camera_limits.y - 6.0), out_dir, "05-visao-geral-balcao-de-vendas.png", 20.0)
     quit()
@@ -67,13 +90,13 @@ func _advance(world: FarmWorld, delta: float) -> void:
             (child as Customer).step(delta)
     world.sales_controller.tick(delta)
 
-func _shot(world: FarmWorld, focus: Vector3, out_dir: String, file: String, ortho_size: float = 0.0) -> void:
+func _shot(world: FarmWorld, focus: Vector3, out_dir: String, file: String, ortho_size: float = 0.0, settle_frames: int = 6) -> void:
     var previous_size := world.camera.size
     if ortho_size > 0.0:
         world.camera.size = ortho_size
     world.camera.global_position = focus + Vector3(0.0, world.camera_height, world.camera_distance)
     world.camera.look_at(focus, Vector3.UP)
-    for frame in 6:
+    for frame in maxi(settle_frames, 1):
         await process_frame
     var image := root.get_viewport().get_texture().get_image()
     var path := out_dir.path_join(file)
