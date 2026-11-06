@@ -16,8 +16,11 @@ const CELL_SIZE := Vector2(0.82, 0.78)
 ## Largura do maço no chão; a profundidade segue a proporção da arte.
 const BUNDLE_WIDTH := 0.74
 ## Altura de cada camada: a espessura do maço desenhado na arte.
-const LAYER_STEP := 0.1
-const BASE_HEIGHT := 0.06
+const LAYER_STEP := 0.06
+## Bloco de madeira: espessura, raio dos cantos e folga além das 15 posições.
+const BASE_HEIGHT := 0.08
+const BASE_RADIUS := 0.2
+const BASE_MARGIN := 0.12
 ## A câmera olha o chão a 45°: o eixo Z aparece encurtado por sin(45°), então
 ## o maço deitado é esticado por 1/sin(45°) para manter a proporção da arte.
 const VIEW_STRETCH := 1.0 / sin(deg_to_rad(45.0))
@@ -30,15 +33,13 @@ var _bundle_mesh: QuadMesh
 var _bundle_material: StandardMaterial3D
 
 func _ready() -> void:
-    var frame := _material(Color(0.42, 0.26, 0.12))
-    var felt := _material(Color(0.16, 0.36, 0.16))
-    var cell_felt := _material(Color(0.22, 0.46, 0.20))
-    var base_size := Vector3(COLUMNS * CELL_SIZE.x + 0.24, BASE_HEIGHT, ROWS * CELL_SIZE.y + 0.24)
-    _add_box("BaseFrame", base_size, Vector3(0.0, BASE_HEIGHT * 0.5, 0.0), frame)
-    _add_box("BaseFelt", Vector3(base_size.x - 0.12, 0.02, base_size.z - 0.12), Vector3(0.0, BASE_HEIGHT + 0.01, 0.0), felt)
-    for slot in SLOTS:
-        var center := get_slot_position(slot)
-        _add_box("Cell_%02d" % slot, Vector3(CELL_SIZE.x - 0.08, 0.01, CELL_SIZE.y - 0.08), Vector3(center.x, BASE_HEIGHT + 0.025, center.z), cell_felt)
+    # Bloco fino de madeira clara com cantos arredondados: corpo um pouco mais
+    # escuro (borda) e tampo claro levemente recuado, imitando um chanfro.
+    var wood_edge := _material(Color(0.60, 0.40, 0.22))
+    var wood_top := _material(Color(0.78, 0.57, 0.35))
+    var base_size := get_base_size()
+    _add_rounded_slab("WoodBase", Vector2(base_size.x, base_size.z), BASE_RADIUS, 0.0, BASE_HEIGHT - 0.015, wood_edge)
+    _add_rounded_slab("WoodBaseTop", Vector2(base_size.x - 0.08, base_size.z - 0.08), BASE_RADIUS - 0.04, BASE_HEIGHT - 0.015, 0.015, wood_top)
     var texture_size := MONEY_TEXTURE.get_size()
     _bundle_mesh = QuadMesh.new()
     _bundle_mesh.size = Vector2(BUNDLE_WIDTH, BUNDLE_WIDTH * texture_size.y / texture_size.x * VIEW_STRETCH)
@@ -49,6 +50,10 @@ func _ready() -> void:
     _bundle_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     _bundle_material.cull_mode = BaseMaterial3D.CULL_DISABLED
     _bundle_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+
+## Tamanho do bloco de madeira (X, altura, Z).
+static func get_base_size() -> Vector3:
+    return Vector3(COLUMNS * CELL_SIZE.x + BASE_MARGIN * 2.0, BASE_HEIGHT, ROWS * CELL_SIZE.y + BASE_MARGIN * 2.0)
 
 func get_capacity_visual() -> int:
     return SLOTS * max_layers
@@ -118,9 +123,28 @@ func _build_bundle(index: int) -> MeshInstance3D:
     bundle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     bundle.rotation_degrees.x = -90.0
     var center := get_slot_position(slot)
-    bundle.position = Vector3(center.x, BASE_HEIGHT + 0.04 + layer * LAYER_STEP, center.z)
+    bundle.position = Vector3(center.x, BASE_HEIGHT + 0.02 + layer * LAYER_STEP, center.z)
     add_child(bundle)
     return bundle
+
+## Retângulo de cantos arredondados extrudado: duas caixas em cruz + 4 cilindros.
+func _add_rounded_slab(label: String, size: Vector2, radius: float, bottom: float, height: float, material: Material) -> void:
+    var y := bottom + height * 0.5
+    _add_box(label + "_X", Vector3(size.x - radius * 2.0, height, size.y), Vector3(0.0, y, 0.0), material)
+    _add_box(label + "_Z", Vector3(size.x, height, size.y - radius * 2.0), Vector3(0.0, y, 0.0), material)
+    var corner := CylinderMesh.new()
+    corner.top_radius = radius
+    corner.bottom_radius = radius
+    corner.height = height
+    corner.radial_segments = 24
+    for sx in [-1.0, 1.0]:
+        for sz in [-1.0, 1.0]:
+            var visual := MeshInstance3D.new()
+            visual.name = label + "_Corner"
+            visual.mesh = corner
+            visual.material_override = material
+            visual.position = Vector3(sx * (size.x * 0.5 - radius), y, sz * (size.y * 0.5 - radius))
+            add_child(visual)
 
 func _add_box(label: String, size: Vector3, offset: Vector3, material: Material) -> void:
     var mesh := BoxMesh.new()

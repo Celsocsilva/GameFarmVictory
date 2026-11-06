@@ -45,4 +45,10 @@ O teste confere: nome e largura, descarga só encostado, 4 mochilas inteiras no 
 - [$ 60 empilhados na base 3 × 5](04-dinheiro-na-base-3x5.png)
 - [Visão ampliada: canteiro, balcão largo, cercas, fila e base de dinheiro](05-visao-geral-balcao-de-vendas.png)
 
+## FV-SALES-001.1 — novo maço e base de madeira
+
+- Sprite trocado pelo maço visto de frente enviado por Celso (`Gemini_Generated_Image_36npqq36npqq36np.jpg`). O fundo xadrez do JPG foi removido por preenchimento a partir das bordas (só pixels neutros e claros), preservando a faixa branca; resultado em `assets/sales/money_bundle.png` (512 × 276, PNG com transparência).
+- Embaixo da pilha: bloco fino (8 cm) de madeira clara com cantos arredondados (raio 20 cm), com tampo um tom mais claro que a borda. Substitui a moldura escura e o feltro verde com as 15 casas.
+- Camada de maços: 6 cm (espessura do maço na nova arte). `sales_counter_smoke` confere a base (8 cantos arredondados, altura ≤ 10 cm, cobre as 15 posições, cor de madeira clara) e a transparência do sprite.
+
 O fazendeiro ainda não recolhe o dinheiro da base; o saldo já fica disponível em `MoneyStack.spend()` para a próxima etapa.

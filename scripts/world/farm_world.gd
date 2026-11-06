@@ -102,7 +102,7 @@ func _build_sales_counter() -> void:
     money_stack.name = "MoneyStack"
     add_child(money_stack)
     var counter_half := sales_counter.get_half_extents()
-    var base_half := Vector2(MoneyStack.COLUMNS * MoneyStack.CELL_SIZE.x + 0.24, MoneyStack.ROWS * MoneyStack.CELL_SIZE.y + 0.24) * 0.5
+    var base_half := Vector2(MoneyStack.get_base_size().x, MoneyStack.get_base_size().z) * 0.5
     money_stack.position = sales_counter.position + Vector3(counter_half.x + 0.35 + base_half.x, 0.0, -0.4 - base_half.y)
     sales_controller = SALES_CONTROLLER_SCRIPT.new() as SalesController
     sales_controller.name = "SalesController"
