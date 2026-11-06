@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud/sale_popup.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/components/field_input_wide.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://assets/currency/cash_bundle_official.png" id="3_cash"]
+
+[node name="SalePopup" type="Control"]
+custom_minimum_size = Vector2(559, 139)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 559.0
+offset_bottom = 139.0
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 24.0
+offset_right = 170.0
+offset_bottom = 116.0
+mouse_filter = 2
+texture = ExtResource("3_cash")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AmountLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 172.0
+offset_top = 20.0
+offset_right = 362.0
+offset_bottom = 119.0
+mouse_filter = 2
+text = "+0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DetailLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 357.0
+offset_top = 20.0
+offset_right = 529.0
+offset_bottom = 119.0
+mouse_filter = 2
+text = "0 caixas"
+horizontal_alignment = 1
+vertical_alignment = 1
+

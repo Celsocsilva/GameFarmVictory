@@ -1,0 +1,335 @@
+[
+  {
+    "path": "assets/ui/hud/hud_counter_money_bg.png",
+    "size": [
+      303,
+      156
+    ],
+    "type": "hud",
+    "description": "Top counter background for money; left icon slot already contains cash bundle icon, right cream area is for dynamic value text."
+  },
+  {
+    "path": "assets/ui/hud/hud_counter_tomato_bg.png",
+    "size": [
+      296,
+      156
+    ],
+    "type": "hud",
+    "description": "Top counter background for tomato amount; engine should render numbers in the cream area."
+  },
+  {
+    "path": "assets/ui/hud/hud_counter_crate_bg.png",
+    "size": [
+      297,
+      156
+    ],
+    "type": "hud",
+    "description": "Top counter background for crate amount; no embedded numbers."
+  },
+  {
+    "path": "assets/ui/hud/hud_counter_water_bg.png",
+    "size": [
+      294,
+      155
+    ],
+    "type": "hud",
+    "description": "Top counter background for water/energy amount."
+  },
+  {
+    "path": "assets/ui/hud/hud_counter_coin_bg.png",
+    "size": [
+      300,
+      155
+    ],
+    "type": "hud",
+    "description": "Top counter background for coin or premium currency amount."
+  },
+  {
+    "path": "assets/ui/hud/hud_top_status_bar_bg.png",
+    "size": [
+      1362,
+      191
+    ],
+    "type": "hud",
+    "description": "Main top HUD bar with level star and slots for money, tomatoes, and crates. Dynamic numbers must be drawn by the game engine."
+  },
+  {
+    "path": "assets/ui/hud/player_level_panel_bg.png",
+    "size": [
+      664,
+      285
+    ],
+    "type": "hud",
+    "description": "Profile/level panel background with farmer medallion and empty text area."
+  },
+  {
+    "path": "assets/ui/hud/mission_panel_bg.png",
+    "size": [
+      751,
+      386
+    ],
+    "type": "hud",
+    "description": "Mission/task panel background with icon slot, title area, and progress bar area; all text and numbers should come from the engine."
+  },
+  {
+    "path": "assets/ui/hud/floral_info_panel_bg.png",
+    "size": [
+      1095,
+      274
+    ],
+    "type": "hud",
+    "description": "Large decorative blank panel for messages, dialogs, or section headers."
+  },
+  {
+    "path": "assets/ui/icons/icon_cash_bundle.png",
+    "size": [
+      327,
+      230
+    ],
+    "type": "icon",
+    "description": "Official money icon for TerraBela Farm UI, matching the approved green bundle look."
+  },
+  {
+    "path": "assets/ui/icons/icon_tomato.png",
+    "size": [
+      254,
+      264
+    ],
+    "type": "icon",
+    "description": "Ripe tomato icon."
+  },
+  {
+    "path": "assets/ui/icons/icon_crate_full.png",
+    "size": [
+      279,
+      285
+    ],
+    "type": "icon",
+    "description": "Wooden crate filled with tomatoes."
+  },
+  {
+    "path": "assets/ui/icons/icon_crate_empty.png",
+    "size": [
+      283,
+      254
+    ],
+    "type": "icon",
+    "description": "Empty wooden crate."
+  },
+  {
+    "path": "assets/ui/icons/icon_water_drop.png",
+    "size": [
+      212,
+      264
+    ],
+    "type": "icon",
+    "description": "Water or energy drop icon."
+  },
+  {
+    "path": "assets/ui/icons/icon_coin.png",
+    "size": [
+      262,
+      270
+    ],
+    "type": "icon",
+    "description": "Coin or leaf currency icon."
+  },
+  {
+    "path": "assets/ui/icons/icon_seed_bag.png",
+    "size": [
+      245,
+      275
+    ],
+    "type": "icon",
+    "description": "Seed bag icon."
+  },
+  {
+    "path": "assets/ui/icons/icon_player_portrait.png",
+    "size": [
+      361,
+      306
+    ],
+    "type": "icon",
+    "description": "Farmer portrait medallion."
+  },
+  {
+    "path": "assets/ui/icons/icon_store.png",
+    "size": [
+      282,
+      245
+    ],
+    "type": "icon",
+    "description": "Store button icon."
+  },
+  {
+    "path": "assets/ui/icons/icon_gift.png",
+    "size": [
+      295,
+      270
+    ],
+    "type": "icon",
+    "description": "Gift/bonus icon including celebratory rays."
+  },
+  {
+    "path": "assets/ui/icons/ui_add_button.png",
+    "size": [
+      248,
+      257
+    ],
+    "type": "icon",
+    "description": "Green plus button."
+  },
+  {
+    "path": "assets/ui/icons/ui_alert_button.png",
+    "size": [
+      238,
+      247
+    ],
+    "type": "icon",
+    "description": "Red exclamation/alert button."
+  },
+  {
+    "path": "assets/ui/icons/ui_close_button.png",
+    "size": [
+      247,
+      253
+    ],
+    "type": "icon",
+    "description": "Red close/X button."
+  },
+  {
+    "path": "assets/ui/icons/badge_discount.png",
+    "size": [
+      270,
+      260
+    ],
+    "type": "icon",
+    "description": "Discount badge for offers or promos."
+  },
+  {
+    "path": "assets/ui/icons/floral_accent_small.png",
+    "size": [
+      377,
+      241
+    ],
+    "type": "icon",
+    "description": "Decorative leaf and flower accent."
+  },
+  {
+    "path": "assets/ui/components/button_cta_green_large.png",
+    "size": [
+      664,
+      191
+    ],
+    "type": "component",
+    "description": "Botão CTA verde (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/button_cta_orange_large.png",
+    "size": [
+      606,
+      191
+    ],
+    "type": "component",
+    "description": "Botão CTA laranja (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/button_cta_blue_large.png",
+    "size": [
+      522,
+      190
+    ],
+    "type": "component",
+    "description": "Botão CTA azul (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/field_input_wide.png",
+    "size": [
+      559,
+      139
+    ],
+    "type": "component",
+    "description": "Wide cream input field or value plate."
+  },
+  {
+    "path": "assets/ui/components/bar_progress_fill_green.png",
+    "size": [
+      433,
+      123
+    ],
+    "type": "component",
+    "description": "Green progress bar fill/background component."
+  },
+  {
+    "path": "assets/ui/components/bar_progress_fill_blue.png",
+    "size": [
+      419,
+      123
+    ],
+    "type": "component",
+    "description": "Blue progress bar fill/background component."
+  },
+  {
+    "path": "assets/ui/components/pill_small_cream.png",
+    "size": [
+      215,
+      116
+    ],
+    "type": "component",
+    "description": "Plaqueta creme pequena (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/pill_medium_cream.png",
+    "size": [
+      401,
+      143
+    ],
+    "type": "component",
+    "description": "Plaqueta creme média (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/panel_tabbed_small.png",
+    "size": [
+      305,
+      177
+    ],
+    "type": "component",
+    "description": "Painel creme com aba superior (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/button_round_green.png",
+    "size": [
+      195,
+      208
+    ],
+    "type": "component",
+    "description": "Botão redondo verde (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/ui/components/panel_shop_large.png",
+    "size": [
+      840,
+      511
+    ],
+    "type": "component",
+    "description": "Large shop or content panel background with awning and blank center."
+  },
+  {
+    "path": "assets/ui/components/panel_reward_popup.png",
+    "size": [
+      577,
+      546
+    ],
+    "type": "component",
+    "description": "Painel de recompensa completo (versão v5 com recorte validado e sem valores fixos)"
+  },
+  {
+    "path": "assets/currency/cash_bundle_official.png",
+    "size": [
+      327,
+      230
+    ],
+    "type": "currency",
+    "description": "Approved official cash bundle for runtime UI and economy indicators."
+  }
+]
