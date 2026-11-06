@@ -1,0 +1,49 @@
+# TerraBela Farm — Asset Map
+
+- `assets/ui/hud/hud_counter_money_bg.png` — Top counter background for money; left icon slot already contains cash bundle icon, right cream area is for dynamic value text. (279x132)
+- `assets/ui/hud/hud_counter_tomato_bg.png` — Top counter background for tomato amount; engine should render numbers in the cream area. (272x132)
+- `assets/ui/hud/hud_counter_crate_bg.png` — Top counter background for crate amount; no embedded numbers. (273x132)
+- `assets/ui/hud/hud_counter_water_bg.png` — Top counter background for water/energy amount. (270x131)
+- `assets/ui/hud/hud_counter_coin_bg.png` — Top counter background for coin or premium currency amount. (276x131)
+- `assets/ui/hud/hud_top_status_bar_bg.png` — Main top HUD bar with level star and slots for money, tomatoes, and crates. Dynamic numbers must be drawn by the game engine. (1338x167)
+- `assets/ui/hud/player_level_panel_bg.png` — Profile/level panel background with farmer medallion and empty text area. (640x261)
+- `assets/ui/hud/mission_panel_bg.png` — Mission/task panel background with icon slot, title area, and progress bar area; all text and numbers should come from the engine. (727x362)
+- `assets/ui/hud/floral_info_panel_bg.png` — Large decorative blank panel for messages, dialogs, or section headers. (1071x250)
+- `assets/ui/icons/icon_cash_bundle.png` — Official money icon for TerraBela Farm UI, matching the approved green bundle look. (303x206)
+- `assets/ui/icons/icon_tomato.png` — Ripe tomato icon. (230x240)
+- `assets/ui/icons/icon_crate_full.png` — Wooden crate filled with tomatoes. (255x261)
+- `assets/ui/icons/icon_crate_empty.png` — Empty wooden crate. (259x230)
+- `assets/ui/icons/icon_water_drop.png` — Water or energy drop icon. (188x240)
+- `assets/ui/icons/icon_coin.png` — Coin or leaf currency icon. (238x246)
+- `assets/ui/icons/icon_seed_bag.png` — Seed bag icon. (221x251)
+- `assets/ui/icons/icon_player_portrait.png` — Farmer portrait medallion. (337x282)
+- `assets/ui/icons/icon_store.png` — Store button icon. (258x221)
+- `assets/ui/icons/icon_gift.png` — Gift/bonus icon including celebratory rays. (271x246)
+- `assets/ui/icons/ui_add_button.png` — Green plus button. (224x233)
+- `assets/ui/icons/ui_alert_button.png` — Red exclamation/alert button. (214x223)
+- `assets/ui/icons/ui_close_button.png` — Red close/X button. (223x229)
+- `assets/ui/icons/badge_discount.png` — Discount badge for offers or promos. (246x236)
+- `assets/ui/icons/floral_accent_small.png` — Decorative leaf and flower accent. (353x217)
+- `assets/ui/components/button_cta_green_large.png` — Large green call-to-action button without embedded text. (494x167)
+- `assets/ui/components/button_cta_orange_large.png` — Large orange call-to-action button without embedded text. (449x167)
+- `assets/ui/components/button_cta_blue_large.png` — Large blue call-to-action button without embedded text. (384x166)
+- `assets/ui/components/field_input_wide.png` — Wide cream input field or value plate. (535x115)
+- `assets/ui/components/bar_progress_fill_green.png` — Green progress bar fill/background component. (409x99)
+- `assets/ui/components/bar_progress_fill_blue.png` — Blue progress bar fill/background component. (395x99)
+- `assets/ui/components/pill_small_cream.png` — Small cream rounded pill placeholder for compact values or labels. (216x187)
+- `assets/ui/components/pill_medium_cream.png` — Medium cream rounded pill placeholder. (440x192)
+- `assets/ui/components/panel_tabbed_small.png` — Small cream panel with top tab accent. (333x191)
+- `assets/ui/components/button_round_green.png` — Round green utility button. (274x196)
+- `assets/ui/components/panel_shop_large.png` — Large shop or content panel background with awning and blank center. (816x487)
+- `assets/ui/components/panel_reward_popup.png` — Reward popup card background with ribbon and gift area; contains no reward numbers. (543x669)
+- `assets/currency/cash_bundle_official.png` — Approved official cash bundle for runtime UI and economy indicators. (303x206)
+
+## Revisões v5 — recortes corrigidos
+- `assets/ui/components/button_cta_green_large.png` — Botão CTA verde; tamanho: 664×191 px; aumento de largura visível: 30.1%.
+- `assets/ui/components/button_cta_orange_large.png` — Botão CTA laranja; tamanho: 606×191 px; aumento de largura visível: 29.93%.
+- `assets/ui/components/button_cta_blue_large.png` — Botão CTA azul; tamanho: 522×190 px; aumento de largura visível: 30.05%.
+- `assets/ui/components/pill_small_cream.png` — Plaqueta creme pequena; tamanho: 215×116 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/pill_medium_cream.png` — Plaqueta creme média; tamanho: 401×143 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/panel_tabbed_small.png` — Painel creme com aba superior; tamanho: 305×177 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/button_round_green.png` — Botão redondo verde; tamanho: 195×208 px; aumento de largura visível: 0.0%.
+- `assets/ui/components/panel_reward_popup.png` — Painel de recompensa completo; tamanho: 577×546 px; aumento de largura visível: 0.0%.

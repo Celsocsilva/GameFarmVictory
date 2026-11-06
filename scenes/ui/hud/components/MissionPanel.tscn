@@ -1,0 +1,94 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud/mission_panel.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud/mission_panel_bg.png" id="2_bg"]
+[ext_resource type="Script" path="res://scripts/ui/hud/hud_progress_bar.gd" id="3_bar"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/icon_tomato.png" id="4_icon"]
+[ext_resource type="Texture2D" path="res://assets/currency/cash_bundle_official.png" id="5_cash"]
+
+[node name="MissionPanel" type="Control"]
+custom_minimum_size = Vector2(751, 386)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 751.0
+offset_bottom = 386.0
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 62.0
+offset_top = 62.0
+offset_right = 192.0
+offset_bottom = 192.0
+mouse_filter = 2
+texture = ExtResource("4_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 254.0
+offset_top = 52.0
+offset_right = 694.0
+offset_bottom = 112.0
+mouse_filter = 2
+text = "Missão"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProgressBar" type="Control" parent="."]
+layout_mode = 0
+offset_left = 242.0
+offset_top = 131.0
+offset_right = 704.0
+offset_bottom = 188.0
+mouse_filter = 2
+script = ExtResource("3_bar")
+label_font_size = 36
+
+[node name="RewardCaption" type="Label" parent="."]
+layout_mode = 0
+offset_left = 234.0
+offset_top = 224.0
+offset_right = 404.0
+offset_bottom = 334.0
+mouse_filter = 2
+text = "Prêmio"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RewardIcon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 404.0
+offset_top = 236.0
+offset_right = 528.0
+offset_bottom = 320.0
+mouse_filter = 2
+texture = ExtResource("5_cash")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RewardLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 534.0
+offset_top = 224.0
+offset_right = 684.0
+offset_bottom = 334.0
+mouse_filter = 2
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+

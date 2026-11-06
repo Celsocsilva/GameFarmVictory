@@ -25,6 +25,9 @@ const WALLET_SCRIPT := preload("res://scripts/economy/wallet.gd")
 const HANDS_OFFSET := Vector3(0.0, 1.1, -0.55)
 const SALES_CONTROLLER_SCRIPT := preload("res://scripts/commerce/sales_controller.gd")
 const CUSTOMER_QUEUE_SCRIPT := preload("res://scripts/customers/customer_queue.gd")
+const FARM_HUD_SCENE := preload("res://scenes/ui/hud/FarmHUD.tscn")
+const PLAYER_LEVEL_SCRIPT := preload("res://scripts/progression/player_level.gd")
+const MISSION_TRACKER_SCRIPT := preload("res://scripts/progression/mission_tracker.gd")
 
 ## Mochila nas costas do fazendeiro (a frente do fazendeiro é -Z local).
 const BACKPACK_OFFSET := Vector3(0.0, 1.1, 0.62)
@@ -70,8 +73,10 @@ var sales_controller: SalesController
 var customer_queue: CustomerQueue
 ## cell_id -> CropPlant, para a colheita localizar a planta de cada célula.
 var crops: Dictionary = {}
-var harvest_label: Label
-var money_label: Label
+## HUD UI-004 (contadores, nível, missão e avisos de venda).
+var hud: FarmHUD
+var player_level: PlayerLevel
+var mission_tracker: MissionTracker
 
 func _ready() -> void:
     var texture_size := SOIL_TEXTURE.get_size()
@@ -212,17 +217,6 @@ func _on_cell_state_changed(cell_id: String, state: String) -> void:
         crops.erase(cell_id)
         planting_grid.reset_if_fully_harvested()
 
-func _update_harvest_label(_item: StringName = &"", _amount: int = 0) -> void:
-    if harvest_label == null:
-        return
-    var total := harvest_inventory.get_total()
-    if harvest_inventory.is_full():
-        harvest_label.text = "Mochila cheia (%d/%d)! Leve as caixas ao Balcão de vendas no rodapé do mapa." % [total, harvest_inventory.get_capacity()]
-        harvest_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35))
-    else:
-        harvest_label.text = "Tomates: %d/%d   Caixas: %d/%d" % [total, harvest_inventory.get_capacity(), harvest_inventory.get_crate_count(), harvest_inventory.max_crates]
-        harvest_label.remove_theme_color_override("font_color")
-
 func _build_environment() -> void:
     var environment := WorldEnvironment.new()
     var resource := Environment.new()
@@ -295,8 +289,13 @@ func _build_planting_area() -> void:
         var visual := MeshInstance3D.new()
         visual.name = "PlowedSoil"
         var quad := QuadMesh.new()
+        # O quad mostra o PNG inteiro com a proporção da arte compensada pela
+        # câmera (1/sin 45°) e o comprimento da tira. Antes a largura era
+        # alargada pela margem transparente sem alongar o comprimento, e o solo
+        # aparecia 4,9% achatado na tela (auditoria FV-SALES-003).
+        var soil_aspect := float(SOIL_TEXTURE.get_height()) / float(SOIL_TEXTURE.get_width())
         quad.size = Vector2(
-            PLANTING_PLOT_WIDTH / planting_visible_width_ratio,
+            planting_plot_size.y / (soil_aspect * PLANTING_LENGTH_STRETCH),
             planting_plot_size.y
         )
         visual.mesh = quad
@@ -392,42 +391,28 @@ func _update_camera_focus(delta: float) -> void:
     camera.look_at(camera_focus, Vector3.UP)
 
 func _build_hud() -> void:
-    var layer := CanvasLayer.new()
-    layer.name = "HUD"
-    add_child(layer)
+    player_level = PLAYER_LEVEL_SCRIPT.new() as PlayerLevel
+    player_level.name = "PlayerLevel"
+    add_child(player_level)
+    # 1 XP por tomate vendido no balcão.
+    sales_controller.sale_completed.connect(_on_sale_completed_xp)
+    mission_tracker = MISSION_TRACKER_SCRIPT.new() as MissionTracker
+    mission_tracker.name = "MissionTracker"
+    add_child(mission_tracker)
+    hud = FARM_HUD_SCENE.instantiate() as FarmHUD
+    hud.name = "HUD"
+    add_child(hud)
     var joystick := JOYSTICK_SCENE.instantiate()
     joystick.name = "VirtualJoystick"
     joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
     joystick.position = Vector2(28, -250)
-    layer.add_child(joystick)
+    hud.add_child(joystick)
     farmer.joystick_path = NodePath("../HUD/VirtualJoystick")
-    var label := Label.new()
-    label.text = "TerraBela Farm  |  Joystick touchscreen / setas para teste"
-    label.position = Vector2(24, 22)
-    layer.add_child(label)
-    harvest_label = Label.new()
-    harvest_label.name = "HarvestLabel"
-    harvest_label.position = Vector2(24, 50)
-    harvest_label.add_theme_font_size_override("font_size", 22)
-    harvest_label.add_theme_constant_override("outline_size", 6)
-    harvest_label.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.04))
-    layer.add_child(harvest_label)
-    harvest_inventory.amount_changed.connect(_update_harvest_label)
-    _update_harvest_label()
-    money_label = Label.new()
-    money_label.name = "MoneyLabel"
-    money_label.position = Vector2(24, 84)
-    money_label.add_theme_font_size_override("font_size", 22)
-    money_label.add_theme_constant_override("outline_size", 6)
-    money_label.add_theme_color_override("font_color", Color(0.72, 1.0, 0.35))
-    money_label.add_theme_color_override("font_outline_color", Color(0.05, 0.16, 0.04))
-    layer.add_child(money_label)
-    wallet.balance_changed.connect(_update_money_label)
-    _update_money_label(wallet.get_balance(), 0)
+    hud.setup(wallet, harvest_inventory, sales_controller, player_level, mission_tracker)
+    mission_tracker.setup(harvest_inventory, sales_controller, wallet, player_level)
 
-func _update_money_label(balance: int, _delta: int) -> void:
-    if money_label:
-        money_label.text = "Dinheiro: $ %d" % balance
+func _on_sale_completed_xp(_customer: Customer, _crates: int, units: int, _money: int) -> void:
+    player_level.add_xp(units)
 
 func _material(color: Color) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()

@@ -34,7 +34,8 @@ func _run() -> void:
     if counter.name != "SalesCounter" or world.get_node_or_null("TomatoDepot") != null:
         return _fail("nome do balcão")
     var half := counter.get_half_extents()
-    if not is_equal_approx(half.x * 2.0, 8.5):
+    # 8,5 m (largura dobrada) x 1,3 = 11,05 m; fundo 2,25 x 1,3 = 2,925 m.
+    if not is_equal_approx(half.x * 2.0, 8.5 * 1.3) or not is_equal_approx(half.y * 2.0, 2.25 * 1.3) or not is_equal_approx(SalesCounter.CRATE_WIDTH, 1.3 * 1.3):
         return _fail("largura %.2f" % (half.x * 2.0))
     print("COUNTER width=%.2f depth=%.2f z=%.2f" % [half.x * 2.0, half.y * 2.0, counter.global_position.z])
 
@@ -157,8 +158,8 @@ func _run() -> void:
     if money.get_visible_bundles() != money.get_capacity_visual() or money.get_balance() != 10020:
         return _fail("pilha máxima")
     money.set_balance(0)
-    if money.get_visible_bundles() != 0 or world.money_label.text != "Dinheiro: $ 0":
-        return _fail("zerar saldo / HUD: %s" % world.money_label.text)
+    if money.get_visible_bundles() != 0 or world.hud.get_money_text() != "0":
+        return _fail("zerar saldo / HUD: %s" % world.hud.get_money_text())
 
     # 4b. Tocar uma pilha esvazia só ela e o valor vai para a carteira (HUD).
     var wallet := world.wallet
@@ -167,14 +168,14 @@ func _run() -> void:
     if money.collect_at(money.global_position + Vector3(0.0, 0.0, -20.0), wallet) != 0:
         return _fail("recolheu de longe")
     var got := money.collect_at(touch, wallet)
-    if got != 2 or money.get_slot_amount(7) != 0 or money.get_balance() != 28 or wallet.get_balance() != 2 or world.money_label.text != "Dinheiro: $ 2":
-        return _fail("toque na pilha: %d, base %d, carteira %d, HUD %s" % [got, money.get_balance(), wallet.get_balance(), world.money_label.text])
+    if got != 2 or money.get_slot_amount(7) != 0 or money.get_balance() != 28 or wallet.get_balance() != 2 or world.hud.get_money_text() != "2":
+        return _fail("toque na pilha: %d, base %d, carteira %d, HUD %s" % [got, money.get_balance(), wallet.get_balance(), world.hud.get_money_text()])
     if money.collect_at(touch, wallet) != 0:
         return _fail("pilha vazia recolhida de novo")
     # Andando por cima de todas as pilhas recolhe tudo.
     for slot in MoneyStack.SLOTS:
         money.collect_at(money.to_global(money.get_slot_position(slot)), wallet)
-    if money.get_balance() != 0 or money.get_visible_bundles() != 0 or wallet.get_balance() != 30 or world.money_label.text != "Dinheiro: $ 30":
+    if money.get_balance() != 0 or money.get_visible_bundles() != 0 or wallet.get_balance() != 30 or world.hud.get_money_text() != "30":
         return _fail("recolher tudo: base %d carteira %d" % [money.get_balance(), wallet.get_balance()])
     # Nova venda volta a empilhar primeiro nas pilhas vazias; o saldo é reutilizável.
     money.add_money(3)
@@ -182,7 +183,7 @@ func _run() -> void:
         return _fail("reempilhar após recolher")
     if not wallet.can_afford(30) or wallet.spend(31) or not wallet.spend(10) or wallet.get_balance() != 20:
         return _fail("gastar saldo")
-    print("MONEY_COLLECT slot7=2 all=30 wallet_after_spend=%d hud=%s" % [wallet.get_balance(), world.money_label.text])
+    print("MONEY_COLLECT slot7=2 all=30 wallet_after_spend=%d hud=%s" % [wallet.get_balance(), world.hud.get_money_text()])
     money.set_balance(0)
     wallet.set_balance(0)
 
@@ -245,5 +246,5 @@ func _run() -> void:
         t2 += STEP
     if sales.sales_log.size() != sales_before + 1 or counter.get_stored_total() != 0 or money.get_balance() != 33:
         return _fail("venda após reabastecer")
-    print("SALES_SMOKE_OK width=8.50 blocked=5 base=3x5 sales=%d money=%d" % [sales.sales_log.size(), money.get_balance()])
+    print("SALES_SMOKE_OK width=11.05 blocked=5 base=3x5 sales=%d money=%d" % [sales.sales_log.size(), money.get_balance()])
     quit()

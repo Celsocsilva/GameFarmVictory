@@ -52,13 +52,13 @@ func _check_soil(world: FarmWorld) -> void:
     var visual := plots[0].get_node("PlowedSoil") as MeshInstance3D
     var quad := visual.mesh as QuadMesh
     var aspect := quad.size.y / quad.size.x
-    var expected := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x) * world.planting_visible_width_ratio * FarmWorld.PLANTING_LENGTH_STRETCH
+    var expected := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x) * FarmWorld.PLANTING_LENGTH_STRETCH
     _check(absf(aspect - expected) < 0.01, "Quad do solo deve seguir a arte compensada pela câmera")
     # Na tela, a tira deve aparecer na proporção da arte (compensação = inclinação real da câmera).
     var pitch := rad_to_deg(atan2(world.camera_height, world.camera_distance))
     _check(absf(pitch - FarmWorld.PLANTING_VIEW_PITCH_DEGREES) < 0.5, "Compensação do comprimento deve casar com a inclinação da câmera")
     var on_screen_aspect := aspect * sin(deg_to_rad(pitch))
-    var art_aspect := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x) * world.planting_visible_width_ratio
+    var art_aspect := float(SOIL_TEXTURE_SIZE.y) / float(SOIL_TEXTURE_SIZE.x)
     _check(absf(on_screen_aspect - art_aspect) < 0.02, "Tira não pode parecer comprimida na tela")
     print("SOIL_OK texture=", soil.get_size(), " quad=", quad.size)
 

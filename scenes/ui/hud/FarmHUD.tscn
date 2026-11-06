@@ -1,0 +1,82 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud/farm_hud.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/PlayerLevelPanel.tscn" id="2_level"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/MissionPanel.tscn" id="3_mission"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/MoneyCounter.tscn" id="4_money"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/TomatoCounter.tscn" id="5_tomato"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/CrateCounter.tscn" id="6_crate"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/InfoBanner.tscn" id="7_banner"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/StoreButton.tscn" id="8_store"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/components/RewardPopup.tscn" id="9_reward"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayerLevelPanel" parent="Root" instance=ExtResource("2_level")]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 656.0
+offset_bottom = 277.0
+scale = Vector2(0.42, 0.42)
+
+[node name="MissionPanel" parent="Root" instance=ExtResource("3_mission")]
+offset_left = 16.0
+offset_top = 136.0
+offset_right = 743.0
+offset_bottom = 498.0
+scale = Vector2(0.46, 0.46)
+
+[node name="Counters" type="Control" parent="Root"]
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="MoneyCounter" parent="Root/Counters" instance=ExtResource("4_money")]
+offset_left = 647.0
+offset_top = 27.0
+offset_right = 926.0
+offset_bottom = 159.0
+scale = Vector2(0.72, 0.72)
+
+[node name="TomatoCounter" parent="Root/Counters" instance=ExtResource("5_tomato")]
+offset_left = 858.0
+offset_top = 27.0
+offset_right = 1130.0
+offset_bottom = 159.0
+scale = Vector2(0.72, 0.72)
+
+[node name="CrateCounter" parent="Root/Counters" instance=ExtResource("6_crate")]
+offset_left = 1068.0
+offset_top = 27.0
+offset_right = 1341.0
+offset_bottom = 159.0
+scale = Vector2(0.72, 0.72)
+
+[node name="InfoBanner" parent="Root" instance=ExtResource("7_banner")]
+offset_left = 415.0
+offset_top = 132.0
+offset_right = 1486.0
+offset_bottom = 382.0
+scale = Vector2(0.42, 0.42)
+
+[node name="StoreButton" parent="Root" instance=ExtResource("8_store")]
+offset_left = 1156.0
+offset_top = 611.0
+offset_right = 1414.0
+offset_bottom = 832.0
+scale = Vector2(0.42, 0.42)
+
+[node name="SalePopups" type="Control" parent="Root"]
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="RewardPopup" parent="Root" instance=ExtResource("9_reward")]

@@ -319,7 +319,7 @@ func _test_capacity_full_keeps_fruit() -> void:
     await _wait_seconds(0.5)
     _check(not controller.request_collect(_cell_at(2, 2, 0)["id"]), "Mochila cheia bloqueia novas reservas")
     _check(_count_state(PlantingGrid.STATE_RIPE) == 3, "Frutos excedentes continuam nas plantas")
-    _check(world.harvest_label.text.contains("Mochila cheia"), "HUD orienta descarregar na bancada")
+    _check(world.hud.get_banner_message().contains("Mochila cheia"), "HUD orienta descarregar na bancada")
     _check_conservation("mochila cheia")
     # Descarregar (Balcão de vendas) libera a colheita de novo.
     inventory.remove(ITEM, 56)

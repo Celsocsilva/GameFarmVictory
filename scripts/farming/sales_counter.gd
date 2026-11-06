@@ -27,16 +27,19 @@ const CRATE_EMPTY_TEXTURE := preload("res://assets/harvest/crate_empty.png")
 ## Largura de cada caixa no balcão e espaçamento: X entre colunas, Y entre
 ## camadas (a de cima apoiada na borda da de baixo), Z entre a fileira de trás
 ## e a da frente.
-const CRATE_WIDTH := 1.3
-const CRATE_SPACING := Vector3(1.38, 0.7, 1.0)
+## Balcão e caixas ampliados 1,3x (FV-SALES-003): de 8,5 m para 11,05 m de
+## largura e caixas de 1,3 m para 1,69 m, mantendo 6 colunas x 2 fileiras.
+const COUNTER_SCALE := 1.3
+const CRATE_WIDTH := 1.3 * COUNTER_SCALE
+const CRATE_SPACING := Vector3(1.38, 0.7, 1.0) * COUNTER_SCALE
 ## Pulo de cada caixa das mãos do fazendeiro até a pilha.
 const JUMP_TIME := 0.42
 const JUMP_STAGGER := 0.09
-const JUMP_HEIGHT := 1.6
+const JUMP_HEIGHT := 1.6 * COUNTER_SCALE
 ## Tampo do balcão: 8,5 m de largura e fundo para 2 caixas, uma na frente da outra.
-const COUNTER_SIZE := Vector3(8.5, 0.16, 2.25)
+const COUNTER_SIZE := Vector3(8.5 * COUNTER_SCALE, 0.16, 2.25 * COUNTER_SCALE)
 ## Rebordo baixo do lado dos clientes, para não esconder as caixas.
-const BACK_HEIGHT := 0.35
+const BACK_HEIGHT := 0.35 * COUNTER_SCALE
 const BARRIER_HEIGHT := 0.7
 
 @export_range(0, 48, 1) var initial_displayed_crates: int = 0

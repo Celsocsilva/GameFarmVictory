@@ -36,7 +36,8 @@ func _run() -> void:
         var shape := ((plot as Node3D).get_node("CollisionShape3D") as CollisionShape3D).shape as BoxShape3D
         plot_far_edge = maxf(plot_far_edge, (plot as Node3D).global_position.z + shape.size.z * 0.5)
     var depot_z := depot.global_position.z
-    if depot_z - 1.2 - plot_far_edge < 4.0:
+    var depot_half_z := depot.get_half_extents().y
+    if depot_z - depot_half_z - plot_far_edge < 4.0:
         return _fail("bancada colada no canteiro: %.2f" % (depot_z - plot_far_edge))
     if queue.get_capacity() != 14:
         return _fail("capacidade %d" % queue.get_capacity())
@@ -44,7 +45,7 @@ func _run() -> void:
     for lane in CustomerQueue.LANES:
         for slot in CustomerQueue.SLOTS_PER_LANE:
             var world_pos := queue.to_global(queue.get_slot_position(lane, slot))
-            if world_pos.z - 0.45 <= depot_z + 1.26:
+            if world_pos.z - 0.45 <= depot_z + depot_half_z + 0.16:
                 return _fail("lugar dentro da bancada %s" % world_pos)
             if world_pos.z + 0.45 >= edge - 0.2:
                 return _fail("lugar fora da cerca %s" % world_pos)
