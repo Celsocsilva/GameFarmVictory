@@ -36,7 +36,7 @@ O mapa deverá reservar espaço para expansão e futuras cadeias produtivas, inc
 
 ## Estado atual
 
-O repositório está na **Fase 0 — Auditoria e consolidação**. Neste momento, a base contém a documentação de direção do produto e preserva o histórico Git do protótipo anterior. A fundação Godot, os assets migrados e o vertical slice ainda precisam ser preparados e validados.
+O projeto está na **Fase 1 — Fundação Godot Mobile**. A base executável da Godot, a configuração mobile, a documentação de arquitetura e a orquestração de agentes já estão organizadas. O vertical slice completo ainda precisa ser implementado e validado em dispositivo Android real.
 
 O legado foi removido da árvore atual, mas permanece no histórico. Para recuperar um arquivo específico da versão anterior:
 
@@ -129,14 +129,17 @@ O slice só será considerado funcional quando, em um Android real:
 - a interface funcionar em diferentes proporções de tela;
 - o build Android for reproduzível e os testes forem registrados.
 
-## Git e contribuição
-
 ## Informações oficiais
 
 - Nome: TerraBela Farm
-- Diretório: `TerraBelaFarm`
-- Repositório: [github.com/Celsocsilva/TerraBelaFarm](https://github.com/Celsocsilva/TerraBelaFarm)
+- Tipo: jogo mobile nativo de fazenda e gerenciamento
+- Engine: Godot Engine 4.7.2 Standard
+- Plataforma prioritária: Android, com compatibilidade arquitetural para iOS
+- Diretório local: `C:\Users\Celso\OneDrive\Documentos\ChatGPT\GAME TERRABELA FARM`
+- Repositório: [github.com/Celsocsilva/GameTerraBelaFarm](https://github.com/Celsocsilva/GameTerraBelaFarm)
 - Website oficial: [https://terrabelafarm.com](https://terrabelafarm.com)
+
+## Git e contribuição
 
 O histórico existente deve ser preservado.
 
@@ -162,12 +165,25 @@ Pré-requisitos planejados:
 Clone o repositório e confira o estado:
 
 ```powershell
-git clone https://github.com/Celsocsilva/TerraBelaFarm.git
-cd TerraBelaFarm
+git clone https://github.com/Celsocsilva/GameTerraBelaFarm.git
+cd GameTerraBelaFarm
 git status
 ```
 
-Os comandos de execução, testes e exportação serão documentados assim que a fundação Godot for criada e validada.
+Para validar os contratos e a orquestração localmente:
+
+```powershell
+python tools\validate_agents.py
+python -m unittest discover -s orchestration/tests -v
+```
+
+Para validar o projeto na Godot em modo headless, com a Godot disponível no `PATH`:
+
+```powershell
+godot --headless --path . --editor --quit
+```
+
+As exportações Android dependem dos templates de exportação, Android SDK e JDK compatíveis.
 
 ## Segurança e qualidade
 

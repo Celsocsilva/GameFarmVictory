@@ -1,5 +1,6 @@
 version: 1
 tools:
+  project: {local_root: "C:/Users/Celso/OneDrive/Documentos/ChatGPT/GAME TERRABELA FARM"}
   filesystem: {allowed: [read, write_workspace], destructive: approval_required}
   git: {allowed: [status, diff, branch, add, commit, push], force_push: forbidden}
   godot: {allowed: [headless_validate, test, export_non_release], release: approval_required, windows_path: "C:/Users/Celso/OneDrive/Documentos/PROJECTS/Godot_v4.7.2-stable_win64/Godot_v4.7.2-stable_win64.exe"}

@@ -2,6 +2,8 @@
 
 From the repository root:
 
+    C:\Users\Celso\OneDrive\Documentos\ChatGPT\GAME TERRABELA FARM
+
     python -m orchestration.runtime.cli --root . create FV-001 "Estruturar inventario e sete caixas" --accept "limite logico sete" --accept "descarga sem duplicacao"
     python -m orchestration.runtime.cli --root . dispatch FV-001 architecture
     python -m unittest discover -s orchestration/tests
