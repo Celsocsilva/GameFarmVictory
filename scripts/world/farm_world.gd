@@ -16,19 +16,28 @@ const PLANTING_GRID_SCRIPT := preload("res://scripts/farming/planting_grid.gd")
 const CROP_PLANT_SCRIPT := preload("res://scripts/farming/crop_plant.gd")
 const SOIL_TEXTURE := preload("res://assets/textures/soil/plowed_soil_three_furrows.png")
 
-const PLANTING_PLOT_COUNT := 4
-const PLANTING_COLUMNS := 4
+const SEED_HAND_OFFSET := Vector3(0.45, 1.15, -0.25)
+
+const PLANTING_PLOT_COUNT := 3
+const PLANTING_COLUMNS := 3
 const PLANTING_ROWS := 1
 const PLANTING_PLOT_WIDTH := 3.8
-# Proporção do novo PNG: 199 x 796. A altura é derivada da largura para
+# Proporção do PNG aprovado: 466 x 912. A altura é derivada da largura para
 # preservar o comprimento original, sem esticar ou comprimir a textura.
-const PLANTING_TEXTURE_ASPECT := 796.0 / 199.0
-# A margem transparente lateral da nova versão é mínima.
-const PLANTING_VISIBLE_WIDTH_RATIO := 0.96
+const PLANTING_TEXTURE_ASPECT := 912.0 / 466.0
+# Conteúdo opaco ocupa 443 dos 466 px de largura (margem transparente lateral).
+const PLANTING_VISIBLE_WIDTH_RATIO := 443.0 / 466.0
+# A câmera olha o chão a 45° (camera_height == camera_distance), o que encurta
+# o eixo Z na tela por sin(45°). O comprimento é compensado por 1/sin(45°) para
+# que a tira apareça na proporção da arte, sem aspecto "comprimido".
+const PLANTING_VIEW_PITCH_DEGREES := 45.0
+const PLANTING_LENGTH_STRETCH := 1.0 / sin(deg_to_rad(PLANTING_VIEW_PITCH_DEGREES))
 const PLANTING_PLOT_SIZE := Vector2(
     PLANTING_PLOT_WIDTH,
-    PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT
+    PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT * PLANTING_LENGTH_STRETCH
 )
+# Borda do canteiro mais próxima da casa/fazendeiro; o canteiro cresce para +Z.
+const PLANTING_NEAR_EDGE_Z := 3.3
 # Os módulos são contíguos nos dois eixos: uma área de cultivo é um agrupamento sem vãos.
 # Sobreposição controlada para ocultar qualquer margem transparente residual do PNG.
 const PLANTING_PLOT_SPACING := Vector2(PLANTING_PLOT_WIDTH - 0.35, PLANTING_PLOT_SIZE.y)
@@ -46,6 +55,7 @@ func _ready() -> void:
     _build_obstacles()
     _build_camera()
     _build_hud()
+    _prewarm_seed_throw()
     camera_focus = farmer.global_position
 
 func _process(delta: float) -> void:
@@ -69,8 +79,23 @@ func _on_grid_cell_planted(cell_id: String) -> void:
     var cell: Dictionary = planting_grid.cells[cell_id]
     var seed_throw := SEED_THROW_SCENE.instantiate() as SeedThrow
     add_child(seed_throw)
-    seed_throw.launch(farmer.global_position + Vector3(0.45, 1.15, -0.25), cell["position"] + Vector3(0.0, 0.2, 0.0))
+    # O broto nasce quando o punhado toca o sulco, não no momento do arremesso.
+    seed_throw.landed.connect(_spawn_crop.bind(cell_id), CONNECT_ONE_SHOT)
+    seed_throw.launch(farmer.global_position + SEED_HAND_OFFSET, cell["position"] + Vector3(0.0, 0.2, 0.0))
+
+## Dispara um punhado invisível sob o terreno para compilar os shaders das
+## partículas na carga da cena; sem isso o primeiro arremesso real engasga.
+func _prewarm_seed_throw() -> void:
+    var warmup := SEED_THROW_SCENE.instantiate() as SeedThrow
+    warmup.name = "SeedThrowWarmup"
+    warmup.ground_grain_count = 1
+    add_child(warmup)
+    warmup.launch(Vector3(0.0, -40.0, 0.0), Vector3(0.5, -40.0, 0.5))
+
+func _spawn_crop(_landing: Vector3, cell_id: String) -> void:
+    var cell: Dictionary = planting_grid.cells[cell_id]
     var crop := CROP_PLANT_SCRIPT.new() as CropPlant
+    crop.name = "Crop_" + cell_id
     crop.position = cell["position"]
     crop.cell_width = cell["cell_width"]
     add_child(crop)
@@ -139,7 +164,7 @@ func _build_planting_area() -> void:
         plot.position = Vector3(
             centered_column * PLANTING_PLOT_SPACING.x,
             0.025,
-            7.0 + centered_row * PLANTING_PLOT_SPACING.y
+            PLANTING_NEAR_EDGE_Z + PLANTING_PLOT_SIZE.y * 0.5 + centered_row * PLANTING_PLOT_SPACING.y
         )
         plot.set_meta("plot_index", index)
         plot.set_meta("crop", "tomato")

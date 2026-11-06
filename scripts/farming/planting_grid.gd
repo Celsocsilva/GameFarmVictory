@@ -4,8 +4,10 @@ class_name PlantingGrid
 signal cell_planted(cell_id: String)
 
 @export var planting_radius: float = 0.95
+## Distância à frente do fazendeiro onde o punhado cai (arremesso, não plantio no pé).
+@export_range(0.0, 4.0, 0.1) var throw_reach: float = 3.0
 @export var columns: int = 3
-@export var rows_per_module: int = 5
+@export var rows_per_module: int = 7
 @export var row_spacing: float = 2.1
 @export var test_mode: bool = true
 
@@ -13,6 +15,8 @@ var cells: Dictionary = {}
 var _last_farmer_position := Vector3.ZERO
 var _has_previous_position := false
 var _plant_accumulator := 0.0
+# Direção do último deslocamento; começa olhando para o canteiro (+Z).
+var _facing := Vector3(0.0, 0.0, 1.0)
 
 func configure(modules: Array[Area3D]) -> void:
     for module in modules:
@@ -52,9 +56,13 @@ func process_farmer_position(world_position: Vector3, delta: float) -> void:
         return
     _plant_accumulator = 0.0
     var travel := world_position - _last_farmer_position
+    var flat_travel := Vector3(travel.x, 0.0, travel.z)
+    if flat_travel.length() > 0.05:
+        _facing = flat_travel.normalized()
+    var reach := _facing * throw_reach
     var sample_count := maxi(1, int(ceil(travel.length() / 0.45)))
     for sample in sample_count + 1:
-        var sample_position := _last_farmer_position.lerp(world_position, float(sample) / float(sample_count))
+        var sample_position := _last_farmer_position.lerp(world_position, float(sample) / float(sample_count)) + reach
         var available := get_available_cells_near(sample_position, planting_radius)
         if not available.is_empty():
             plant_cell(available[0]["id"])
