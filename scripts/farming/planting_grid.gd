@@ -2,6 +2,14 @@ extends Node3D
 class_name PlantingGrid
 
 signal cell_planted(cell_id: String)
+## Mudança de estado de colheita: RIPE, HARVESTING ou HARVESTED.
+signal cell_state_changed(cell_id: String, state: String)
+
+## Estados de colheita (FV-HARVEST-001): RIPE -> HARVESTING -> HARVESTED,
+## ou de volta a RIPE em coleta parcial (mochila cheia ou cancelamento).
+const STATE_RIPE := "RIPE"
+const STATE_HARVESTING := "HARVESTING"
+const STATE_HARVESTED := "HARVESTED"
 
 @export var planting_radius: float = 0.95
 ## Distância à frente do fazendeiro onde o punhado cai (arremesso, não plantio no pé).
@@ -42,9 +50,11 @@ func configure(modules: Array[Area3D]) -> void:
                     "column": column,
                     "crop_id": "tomato",
                     "cell_width": cell_width,
+                    "cell_length": cell_length,
                     "position": module.to_global(local_offset),
                     "state": "EMPTY",
-                    "planted_at": 0.0
+                    "planted_at": 0.0,
+                    "remaining_yield": 0
                 }
 
 func process_farmer_position(world_position: Vector3, delta: float) -> void:
@@ -114,3 +124,94 @@ func plant_cell(cell_id: String) -> bool:
     cells[cell_id]["planted_at"] = Time.get_ticks_msec() / 1000.0
     cell_planted.emit(cell_id)
     return true
+
+# --- Colheita (FV-HARVEST-001) -------------------------------------------
+
+## Menor distância entre centros de células vizinhas (base do raio de colheita).
+func get_cell_spacing() -> float:
+    var spacing := INF
+    for cell in cells.values():
+        spacing = minf(spacing, minf(cell["cell_width"], cell["cell_length"]))
+    return spacing if spacing < INF else 1.0
+
+## A planta amadureceu: passa a RIPE com `units` frutos colhíveis.
+func mark_ripe(cell_id: String, units: int) -> void:
+    if not cells.has(cell_id) or cells[cell_id]["state"] == STATE_HARVESTED:
+        return
+    cells[cell_id]["remaining_yield"] = maxi(0, units)
+    _set_state(cell_id, STATE_RIPE if units > 0 else STATE_HARVESTED)
+
+## Células RIPE com frutos dentro do raio, ordem determinística (distância, id).
+func get_ripe_cells_near(world_pos: Vector3, radius: float) -> Array[Dictionary]:
+    var origin := Vector2(world_pos.x, world_pos.z)
+    var result: Array[Dictionary] = []
+    for cell in cells.values():
+        if cell["state"] != STATE_RIPE or int(cell["remaining_yield"]) <= 0:
+            continue
+        var p: Vector3 = cell["position"]
+        if Vector2(p.x, p.z).distance_to(origin) <= radius:
+            result.append(cell)
+    result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+        var pa: Vector3 = a["position"]
+        var pb: Vector3 = b["position"]
+        var da := Vector2(pa.x, pa.z).distance_to(origin)
+        var db := Vector2(pb.x, pb.z).distance_to(origin)
+        if not is_equal_approx(da, db):
+            return da < db
+        return String(a["id"]) < String(b["id"]))
+    return result
+
+func get_remaining_yield(cell_id: String) -> int:
+    return int(cells[cell_id]["remaining_yield"]) if cells.has(cell_id) else 0
+
+## Trava a célula para uma única coleta simultânea.
+func begin_harvest(cell_id: String) -> bool:
+    if not cells.has(cell_id) or cells[cell_id]["state"] != STATE_RIPE:
+        return false
+    _set_state(cell_id, STATE_HARVESTING)
+    return true
+
+## Retira da planta as unidades que acabaram de ser confirmadas na mochila.
+## Chamado a cada fruto que chega, para que planta + mochila sempre somem a
+## produção original (inclusive num save feito no meio do voo).
+func consume_yield(cell_id: String, units: int) -> void:
+    if cells.has(cell_id):
+        cells[cell_id]["remaining_yield"] = maxi(0, get_remaining_yield(cell_id) - maxi(units, 0))
+
+## Encerra a coleta: sem frutos -> HARVESTED; sobras (mochila cheia ou
+## cancelamento) mantêm a planta coletável em RIPE.
+func finish_harvest(cell_id: String) -> String:
+    if not cells.has(cell_id) or cells[cell_id]["state"] != STATE_HARVESTING:
+        return ""
+    _set_state(cell_id, STATE_RIPE if get_remaining_yield(cell_id) > 0 else STATE_HARVESTED)
+    return cells[cell_id]["state"]
+
+func set_remaining_yield(cell_id: String, units: int) -> void:
+    if cells.has(cell_id):
+        cells[cell_id]["remaining_yield"] = maxi(0, units)
+
+## Estado por célula para retomada. HARVESTING é salvo como RIPE: as reservas
+## pendentes não são persistidas, então o fruto continua na planta.
+func get_harvest_state() -> Dictionary:
+    var data := {}
+    for cell in cells.values():
+        if cell["state"] in [STATE_RIPE, STATE_HARVESTING, STATE_HARVESTED]:
+            data[cell["id"]] = {
+                "state": STATE_RIPE if cell["state"] == STATE_HARVESTING else cell["state"],
+                "remaining_yield": int(cell["remaining_yield"])
+            }
+    return data
+
+func apply_harvest_state(data: Dictionary) -> void:
+    for cell_id in data:
+        if not cells.has(cell_id):
+            continue
+        var entry: Dictionary = data[cell_id]
+        cells[cell_id]["remaining_yield"] = maxi(0, int(entry.get("remaining_yield", 0)))
+        _set_state(cell_id, String(entry.get("state", STATE_RIPE)))
+
+func _set_state(cell_id: String, state: String) -> void:
+    if cells[cell_id]["state"] == state:
+        return
+    cells[cell_id]["state"] = state
+    cell_state_changed.emit(cell_id, state)

@@ -15,6 +15,12 @@ const SEED_THROW_SCENE := preload("res://scenes/vfx/SeedThrow.tscn")
 const PLANTING_GRID_SCRIPT := preload("res://scripts/farming/planting_grid.gd")
 const CROP_PLANT_SCRIPT := preload("res://scripts/farming/crop_plant.gd")
 const SOIL_TEXTURE := preload("res://assets/textures/soil/plowed_soil_three_furrows.png")
+const HARVEST_INVENTORY_SCRIPT := preload("res://scripts/farming/harvest_inventory.gd")
+const HARVEST_CONTROLLER_SCRIPT := preload("res://scripts/farming/harvest_controller.gd")
+const BACKPACK_CRATES_SCRIPT := preload("res://scripts/player/backpack_crates.gd")
+
+## Mochila nas costas do fazendeiro (a frente do fazendeiro é -Z local).
+const BACKPACK_OFFSET := Vector3(0.0, 1.1, 0.62)
 
 const SEED_HAND_OFFSET := Vector3(0.45, 1.15, -0.25)
 
@@ -46,6 +52,12 @@ const PLANTING_PLOT_SPACING := Vector2(PLANTING_PLOT_WIDTH - 0.35, PLANTING_PLOT
 var camera: Camera3D
 var camera_focus: Vector3
 var planting_grid: PlantingGrid
+var harvest_inventory: HarvestInventory
+var harvest_controller: HarvestController
+var backpack: BackpackCrates
+## cell_id -> CropPlant, para a colheita localizar a planta de cada célula.
+var crops: Dictionary = {}
+var harvest_label: Label
 
 func _ready() -> void:
     _build_environment()
@@ -54,6 +66,7 @@ func _ready() -> void:
     _build_planting_grid()
     _build_obstacles()
     _build_camera()
+    _build_harvest()
     _build_hud()
     _prewarm_seed_throw()
     camera_focus = farmer.global_position
@@ -92,14 +105,62 @@ func _prewarm_seed_throw() -> void:
     add_child(warmup)
     warmup.launch(Vector3(0.0, -40.0, 0.0), Vector3(0.5, -40.0, 0.5))
 
-func _spawn_crop(_landing: Vector3, cell_id: String) -> void:
+func _spawn_crop(_landing: Vector3, cell_id: String) -> CropPlant:
     var cell: Dictionary = planting_grid.cells[cell_id]
     var crop := CROP_PLANT_SCRIPT.new() as CropPlant
     crop.name = "Crop_" + cell_id
     crop.position = cell["position"]
     crop.cell_width = cell["cell_width"]
     add_child(crop)
+    crops[cell_id] = crop
+    crop.ready_for_harvest.connect(_on_crop_ready)
     crop.initialize(cell_id, cell["planted_at"])
+    return crop
+
+## Planta já num estágio (ferramentas de teste/captura). Estágio final => RIPE.
+func spawn_crop_at_stage(cell_id: String, stage: int) -> CropPlant:
+    if planting_grid.cells[cell_id]["state"] == "EMPTY":
+        planting_grid.cells[cell_id]["state"] = "SEEDED"
+    var crop := _spawn_crop(Vector3.ZERO, cell_id)
+    # planted_at = 0 congela o crescimento no estágio pedido.
+    crop.planted_at = 0.0
+    crop._update_stage(stage)
+    return crop
+
+func _on_crop_ready(cell_id: String) -> void:
+    planting_grid.mark_ripe(cell_id, harvest_controller.yield_per_crop)
+
+func _build_harvest() -> void:
+    harvest_inventory = HARVEST_INVENTORY_SCRIPT.new() as HarvestInventory
+    harvest_inventory.name = "HarvestInventory"
+    add_child(harvest_inventory)
+    backpack = BACKPACK_CRATES_SCRIPT.new() as BackpackCrates
+    backpack.name = "BackpackCrates"
+    backpack.max_crates = harvest_inventory.max_crates
+    backpack.units_per_crate = harvest_inventory.units_per_crate
+    backpack.position = BACKPACK_OFFSET
+    farmer.add_child(backpack)
+    harvest_inventory.amount_changed.connect(backpack.set_amount)
+    harvest_controller = HARVEST_CONTROLLER_SCRIPT.new() as HarvestController
+    harvest_controller.name = "HarvestController"
+    add_child(harvest_controller)
+    harvest_controller.setup(planting_grid, harvest_inventory, farmer, backpack.intake_marker, crops, self)
+    planting_grid.cell_state_changed.connect(_on_cell_state_changed)
+
+func _on_cell_state_changed(cell_id: String, state: String) -> void:
+    if state == PlantingGrid.STATE_HARVESTED and crops.has(cell_id):
+        (crops[cell_id] as CropPlant).set_harvested()
+
+func _update_harvest_label(_item: StringName = &"", _amount: int = 0) -> void:
+    if harvest_label == null:
+        return
+    var total := harvest_inventory.get_total()
+    if harvest_inventory.is_full():
+        harvest_label.text = "Mochila cheia (%d/%d)! Leve as caixas até a bancada para descarregar." % [total, harvest_inventory.get_capacity()]
+        harvest_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35))
+    else:
+        harvest_label.text = "Tomates: %d/%d   Caixas: %d/%d" % [total, harvest_inventory.get_capacity(), harvest_inventory.get_crate_count(), harvest_inventory.max_crates]
+        harvest_label.remove_theme_color_override("font_color")
 
 func _build_environment() -> void:
     var environment := WorldEnvironment.new()
@@ -283,6 +344,15 @@ func _build_hud() -> void:
     label.text = "TerraBela Farm  |  Joystick touchscreen / setas para teste"
     label.position = Vector2(24, 22)
     layer.add_child(label)
+    harvest_label = Label.new()
+    harvest_label.name = "HarvestLabel"
+    harvest_label.position = Vector2(24, 50)
+    harvest_label.add_theme_font_size_override("font_size", 22)
+    harvest_label.add_theme_constant_override("outline_size", 6)
+    harvest_label.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.04))
+    layer.add_child(harvest_label)
+    harvest_inventory.amount_changed.connect(_update_harvest_label)
+    _update_harvest_label()
 
 func _material(color: Color) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()

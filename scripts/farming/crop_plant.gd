@@ -31,10 +31,18 @@ const ALPHA_THRESHOLD := int(ALPHA_CUTOFF * 255.0)
 # Retângulo opaco de cada PNG, calculado uma vez por textura e compartilhado.
 static var _visible_rect_cache: Dictionary = {}
 
+## Estágio exibido depois que todos os frutos foram colhidos. O 02 tem tomates
+## verdes, então o pé colhido volta ao broto (sem frutos) até existir arte própria.
+const HARVESTED_STAGE_INDEX := 0
+
 var stage_index := -1
 var planted_at := 0.0
 var sprite: Sprite3D
+## Ponto de onde os frutos se desprendem (meio da copa, onde estão os tomates).
+var harvest_origin_marker: Marker3D
+var is_harvested := false
 var _pop_tween: Tween
+var _shake_tween: Tween
 
 func initialize(new_cell_id: String, timestamp: float) -> void:
     cell_id = new_cell_id
@@ -51,10 +59,13 @@ func initialize(new_cell_id: String, timestamp: float) -> void:
     sprite.centered = false
     sprite.region_enabled = true
     add_child(sprite)
+    harvest_origin_marker = Marker3D.new()
+    harvest_origin_marker.name = "HarvestOriginMarker"
+    add_child(harvest_origin_marker)
     _update_stage(0)
 
 func _process(_delta: float) -> void:
-    if planted_at <= 0.0:
+    if planted_at <= 0.0 or is_harvested:
         return
     var elapsed := Time.get_ticks_msec() / 1000.0 - planted_at
     var duration := growth_duration if accelerated_test_mode else growth_duration * 10.0
@@ -84,11 +95,51 @@ func _update_stage(new_index: int) -> void:
     # esquerdo; desloca metade da largura para centralizar no sulco.
     sprite.offset = Vector2(-region.size.x * 0.5, 0.0)
     sprite.position = Vector3(0.0, 0.02, 0.0)
+    # Os tomates maduros ficam entre ~35% e ~75% da altura do desenho.
+    harvest_origin_marker.position = Vector3(0.0, 0.02 + get_visible_world_size().y * 0.52, 0.0)
     if stage_pop_duration > 0.0 and is_inside_tree():
         _play_stage_pop(0.0 if previous_index < 0 else 0.82)
     stage_changed.emit(cell_id, STAGES[stage_index])
-    if stage_index == STAGES.size() - 1:
+    if stage_index == STAGES.size() - 1 and not is_harvested:
         ready_for_harvest.emit(cell_id)
+
+## Pontos de desprendimento dos frutos, espalhados pela copa visível e sempre
+## acima do sulco. `count` pontos determinísticos para a mesma planta.
+func get_harvest_origins(count: int, camera: Camera3D) -> Array[Vector3]:
+    var size := get_visible_world_size()
+    var right := camera.global_basis.x if camera else Vector3.RIGHT
+    right = Vector3(right.x, 0.0, right.z).normalized() if right.length() > 0.001 else Vector3.RIGHT
+    var toward_camera := camera.global_basis.z if camera else Vector3.BACK
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash(cell_id)
+    var origins: Array[Vector3] = []
+    for i in count:
+        var lateral := (float(i) / maxf(1.0, float(count - 1)) - 0.5) * size.x * 0.55 if count > 1 else 0.0
+        var height := size.y * rng.randf_range(0.34, 0.72)
+        var point := global_position + Vector3(0.0, 0.02 + height, 0.0) + right * (lateral + rng.randf_range(-0.06, 0.06))
+        # Levemente à frente do billboard da planta, para o fruto sair por cima das folhas.
+        origins.append(point + toward_camera * 0.12)
+    return origins
+
+## Sacudida rápida quando os frutos se soltam. A planta não sai da célula.
+func play_harvest_shake() -> void:
+    if sprite == null or not is_inside_tree():
+        return
+    if _shake_tween and _shake_tween.is_valid():
+        _shake_tween.kill()
+    sprite.scale = Vector3.ONE
+    _shake_tween = create_tween()
+    _shake_tween.tween_property(sprite, "scale", Vector3(1.08, 0.92, 1.0), 0.07)
+    _shake_tween.tween_property(sprite, "scale", Vector3(0.96, 1.05, 1.0), 0.08)
+    _shake_tween.tween_property(sprite, "scale", Vector3.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+## Todos os frutos colhidos: mostra o pé sem tomates e congela o crescimento.
+## O replantio fica a cargo de outro sistema.
+func set_harvested() -> void:
+    if is_harvested:
+        return
+    is_harvested = true
+    _update_stage(HARVESTED_STAGE_INDEX)
 
 ## Pequeno "pop" ao brotar (de 0) e ao trocar de estágio (de from_scale).
 func _play_stage_pop(from_scale: float) -> void:
