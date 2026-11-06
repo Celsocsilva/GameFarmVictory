@@ -22,11 +22,11 @@ const PLANTING_PLOT_COUNT := 4
 const PLANTING_COLUMNS := 4
 const PLANTING_ROWS := 1
 const PLANTING_PLOT_WIDTH := 3.8
-# Proporção do PNG aprovado: 350 x 788. A altura é derivada da largura para
+# Proporção do PNG aprovado: 466 x 912. A altura é derivada da largura para
 # preservar o comprimento original, sem esticar ou comprimir a textura.
-const PLANTING_TEXTURE_ASPECT := 788.0 / 350.0
-# A margem transparente lateral da nova versão é mínima.
-const PLANTING_VISIBLE_WIDTH_RATIO := 0.94
+const PLANTING_TEXTURE_ASPECT := 912.0 / 466.0
+# Conteúdo opaco ocupa 443 dos 466 px de largura (margem transparente lateral).
+const PLANTING_VISIBLE_WIDTH_RATIO := 443.0 / 466.0
 const PLANTING_PLOT_SIZE := Vector2(
     PLANTING_PLOT_WIDTH,
     PLANTING_PLOT_WIDTH * PLANTING_TEXTURE_ASPECT

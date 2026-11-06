@@ -2,7 +2,7 @@ extends SceneTree
 ## Smoke test headless: grade de plantio, tamanho dos tomates e punhado de sementes.
 ## Uso: Godot --headless --path . -s tools/farm_smoke.gd   (código de saída 1 em falha)
 
-const SOIL_TEXTURE_SIZE := Vector2i(350, 788)
+const SOIL_TEXTURE_SIZE := Vector2i(466, 912)
 
 var _failures := 0
 
@@ -32,7 +32,7 @@ func _run() -> void:
 
 func _check_soil(world: FarmWorld) -> void:
     var soil := FarmWorld.SOIL_TEXTURE
-    _check(Vector2i(soil.get_size()) == SOIL_TEXTURE_SIZE, "Textura do solo deve ser a nova arte 350x788")
+    _check(Vector2i(soil.get_size()) == SOIL_TEXTURE_SIZE, "Textura do solo deve ser a nova arte 466x912")
     var plots := world.get_node("PlantingArea").get_children()
     _check(plots.size() == FarmWorld.PLANTING_PLOT_COUNT, "Quantidade de canteiros")
     var visual := plots[0].get_node("PlowedSoil") as MeshInstance3D

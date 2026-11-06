@@ -4,14 +4,14 @@ Godot 4.7.2, renderizador Mobile, câmera da cena `farm_world.tscn`, 1280×720.
 
 ## Requisitos
 
-1. Substituir o solo pela nova arte laranja com 3 sulcos (`plowed_soil_three_furrows.png`, 350×788).
+1. Substituir o solo pela nova arte laranja com 3 sulcos (`plowed_soil_three_furrows.png`, 466×912, enviada pelo Celso).
 2. Semeadura mais fluida: um punhado com sementes de vários tamanhos lançado de uma vez.
 3. Tomates maiores em todos os estágios do ciclo.
 4. Refatorar e validar com evidência.
 
 ## Mudanças
 
-- **Solo**: textura nova, proporção 788/350 preservada no quad (sem distorção); 4 canteiros × 3 sulcos × 6 fileiras = 72 células.
+- **Solo**: textura nova, proporção 912/466 preservada no quad (sem distorção); 4 canteiros × 3 sulcos × 6 fileiras = 72 células.
 - **Semeadura** (`scenes/vfx/SeedThrow.tscn`, `scripts/vfx/seed_throw.gd`):
   - 18 sementes por punhado, saindo de uma esfera de 0,14 m (a "mão"), com escalonamento de 12% do voo (`explosiveness` 0,88).
   - Tamanhos de 0,45× a 1,25× e quatro formatos sorteados do atlas 2×2 (`tomato_seed_atlas_2x2.png`).
@@ -31,7 +31,7 @@ Godot 4.7.2, renderizador Mobile, câmera da cena `farm_world.tscn`, 1280×720.
 
 ```
 Godot_v4.7.2-stable_win64_console.exe --headless --path . -s tools/farm_smoke.gd
-SOIL_OK texture=(350.0, 788.0) quad=(4.042553, 8.555429)
+SOIL_OK texture=(466.0, 912.0) quad=(3.997291, 7.43691)
 GRID_OK cells=72 unique=72 front=PlantingPlot_01_r05_c00 back=PlantingPlot_01_r00_c00
 CROP_SIZES_OK SPROUT=1.18x0.80(+109%) GROWING=1.05x1.30(+34%) FLOWERING=1.28x1.40(+90%) GREEN_FRUIT=1.14x1.55(+60%) READY_TO_HARVEST=1.46x1.62(+59%)
 SEED_THROW_OK amount=18 scale=0.45-1.25 landing_error=0.00000004
