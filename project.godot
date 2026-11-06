@@ -34,3 +34,8 @@ enabled=PackedStringArray("res://addons/meshy-godot-plugin/plugin.cfg")
 [rendering]
 
 renderer/rendering_method="mobile"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://localization/ui.pt_BR.translation", "res://localization/ui.es.translation", "res://localization/ui.en.translation")
+locale/fallback="pt_BR"
